@@ -22,6 +22,7 @@
   .sub{font-size:12.5px;color:var(--dim);margin-bottom:12px;line-height:1.5}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px}
   .card.learn{border-color:#4a3a6b;background:#191527}
+  .card.check{border-color:#6b4a2a;background:#1f1710}
   .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:0 0 11px;font-weight:600}
 
   .big{text-align:center;padding:6px 0 2px}
@@ -76,6 +77,7 @@
   .learnbar{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:10px 0 4px}
   .learnbar>i{display:block;height:100%;width:0;background:var(--learn);transition:width .15s}
   .learnbar>i.ng{background:var(--noise)}
+  .result{font-size:14px;padding:12px;border-radius:10px;background:var(--panel2);line-height:1.5;margin-top:10px;text-align:center}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center}
   .stat{background:var(--panel2);border-radius:10px;padding:12px 6px}
@@ -92,7 +94,7 @@
 <body>
 
 <h1>Đếm nhãn A5 bằng âm thanh <span class="pill" id="state">chưa chạy</span></h1>
-<div class="sub">Máy cần học <b>hai thứ</b>: tiếng kéo giấy (để đếm) và tiếng ồn phòng bạn (để bỏ qua). Học đủ cả hai thì mới hết đếm nhầm.</div>
+<div class="sub">Máy nghe <b>cả quãng tiếng kéo</b> — dài bao lâu, mạnh cỡ nào, âm sắc thế nào — chứ không chỉ nghe một tiếng động. Nhờ vậy phân biệt được tiếng giấy với tiếng gõ, tiếng va chạm.</div>
 
 <div class="err" id="err"></div>
 
@@ -112,8 +114,24 @@
   </div>
 </div>
 
+<div class="card check">
+  <h2>Bước 1 · Kiểm tra & dạy tiếng ồn</h2>
+  <div class="note" style="margin-top:0">Bấm nút rồi <b>ngồi yên 30 giây, KHÔNG đụng vào giấy</b>. Máy đếm xem có bao nhiêu lần nó định đếm nhầm, đồng thời ghi nhớ tất cả tiếng đó là “không phải giấy”. Làm lại tới khi báo <b>0 lần</b>.</div>
+  <div class="row" style="margin-top:11px">
+    <button class="noiseb" id="btnNoise" disabled>Kiểm tra & dạy tiếng ồn (30 giây)</button>
+  </div>
+  <div id="noiseBox" class="hidden">
+    <div class="learnbar"><i id="noiseFill" class="ng"></i></div>
+    <div class="note" style="margin-top:4px;color:var(--noise)" id="noiseMsg">Đang nghe — ĐỪNG đụng vào giấy…</div>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost mini" id="btnNoiseCancel">Dừng sớm</button>
+    </div>
+  </div>
+  <div class="result hidden" id="noiseResult"></div>
+</div>
+
 <div class="card learn">
-  <h2>Thư viện của bạn</h2>
+  <h2>Bước 2 · Dạy tiếng giấy</h2>
   <div class="tpl none" id="tplInfo"></div>
 
   <div id="learnIdle">
@@ -126,10 +144,6 @@
       <button class="ghost mini" id="btnLearnAdd" disabled>Dạy thêm tiếng giấy</button>
       <button class="ghost mini" id="btnDelete" disabled>Xoá hết, học lại</button>
     </div>
-    <div class="row" style="margin-top:8px">
-      <button class="noiseb" id="btnNoise" disabled>Dạy tiếng ồn phòng (20 giây)</button>
-    </div>
-    <div class="note">Bấm <b>Dạy tiếng ồn</b> rồi <b>KHÔNG đụng vào giấy</b> trong 20 giây — cứ nói chuyện, gõ phím, để quạt chạy như thường. Máy ghi lại những tiếng đó để <b>không bao giờ đếm nhầm chúng nữa</b>. Đây là cách chữa lỗi “không làm gì cũng đếm”.</div>
   </div>
 
   <div id="learnBox" class="hidden">
@@ -140,15 +154,7 @@
       <button class="ghost mini" id="btnUndo">Bỏ tờ vừa rồi</button>
       <button class="ghost mini" id="btnLearnCancel">Huỷ học</button>
     </div>
-    <div class="note">Kéo 1 tờ → bấm <b>Xác nhận tờ này</b>. Máy chỉ lấy đúng tiếng bạn xác nhận. Những tiếng bạn không xác nhận sẽ được ghi vào nhóm “tiếng ồn”.</div>
-  </div>
-
-  <div id="noiseBox" class="hidden">
-    <div class="learnbar"><i id="noiseFill" class="ng"></i></div>
-    <div class="note" style="margin:4px 0 10px;color:var(--noise)" id="noiseMsg">Đang nghe tiếng ồn — ĐỪNG đụng vào giấy…</div>
-    <div class="row">
-      <button class="ghost mini" id="btnNoiseCancel">Dừng dạy tiếng ồn</button>
-    </div>
+    <div class="note">Kéo 1 tờ → bấm <b>Xác nhận tờ này</b>. Máy chỉ lấy đúng tiếng bạn xác nhận.</div>
   </div>
 </div>
 
@@ -160,28 +166,7 @@
     <button data-sp="2">Nhanh</button>
   </div>
   <div class="note" id="spHint">Vừa — hai tiếng cách nhau dưới 0,5 giây được coi là <b>cùng một tờ</b>.</div>
-  <div class="note">Dùng khi <b>một tờ bị gấp, kéo phát ra nhiều tiếng</b>: máy gộp cả chuỗi tiếng liền nhau thành 1 tờ, chỉ tính tờ mới sau khi có khoảng lặng. Chọn <b>Chậm</b> nếu giấy hay gấp; chọn <b>Nhanh</b> nếu bạn rút liên tục và bị đếm thiếu.</div>
-</div>
-
-<div class="card">
-  <h2>Chia sẻ thư viện cho cả team</h2>
-  <div class="note" style="margin-top:0">Một người dạy thật kỹ, rồi gửi mã cho cả team qua Zalo. Người nhận dán mã vào và bấm Gộp. Mã gồm cả tiếng giấy lẫn tiếng ồn.</div>
-
-  <div style="margin-top:12px;font-size:12.5px;color:var(--dim)">Mã thư viện của bạn</div>
-  <textarea id="codeOut" readonly placeholder="Chưa có thư viện để chia sẻ"></textarea>
-  <div class="row">
-    <button class="ghost mini" id="btnCopy" disabled>Sao chép mã</button>
-    <button class="ghost mini" id="btnShare" disabled>Gửi qua Zalo…</button>
-  </div>
-
-  <div style="margin-top:16px;font-size:12.5px;color:var(--dim)">Nhận mã từ người khác</div>
-  <textarea id="codeIn" placeholder="Dán mã đồng nghiệp gửi vào đây"></textarea>
-  <div class="row">
-    <button class="ghost mini" id="btnMerge">Gộp vào thư viện</button>
-    <button class="ghost mini" id="btnReplace">Thay thế toàn bộ</button>
-  </div>
-  <div class="note" id="shareMsg">Nên chọn <b>Gộp</b> — giữ tiếng giấy của bạn và thêm của đồng nghiệp.</div>
-  <div class="note">Lưu ý: mỗi máy có micro khác nhau. Sau khi nhập mã, nên bấm <b>Dạy tiếng ồn phòng</b> trên chính máy của bạn — tiếng ồn thì mỗi chỗ mỗi khác.</div>
+  <div class="note">Dùng khi <b>một tờ bị gấp, kéo phát ra nhiều tiếng</b>: máy gộp cả chuỗi tiếng liền nhau thành 1 tờ. Chọn <b>Chậm</b> nếu giấy hay gấp; chọn <b>Nhanh</b> nếu rút liên tục và bị đếm thiếu.</div>
 </div>
 
 <div class="card">
@@ -207,6 +192,25 @@
   <div class="row" style="margin-top:11px">
     <button class="ghost mini" id="btnRecal" disabled>Đo lại độ ồn nền</button>
   </div>
+</div>
+
+<div class="card">
+  <h2>Chia sẻ thư viện cho cả team</h2>
+  <div class="note" style="margin-top:0">Một người dạy thật kỹ rồi gửi mã cho cả team qua Zalo. Mã gồm cả tiếng giấy lẫn tiếng ồn.</div>
+  <div style="margin-top:12px;font-size:12.5px;color:var(--dim)">Mã thư viện của bạn</div>
+  <textarea id="codeOut" readonly placeholder="Chưa có thư viện để chia sẻ"></textarea>
+  <div class="row">
+    <button class="ghost mini" id="btnCopy" disabled>Sao chép mã</button>
+    <button class="ghost mini" id="btnShare" disabled>Gửi qua Zalo…</button>
+  </div>
+  <div style="margin-top:16px;font-size:12.5px;color:var(--dim)">Nhận mã từ người khác</div>
+  <textarea id="codeIn" placeholder="Dán mã đồng nghiệp gửi vào đây"></textarea>
+  <div class="row">
+    <button class="ghost mini" id="btnMerge">Gộp vào thư viện</button>
+    <button class="ghost mini" id="btnReplace">Thay thế toàn bộ</button>
+  </div>
+  <div class="note" id="shareMsg">Nên chọn <b>Gộp</b> — giữ tiếng giấy của bạn và thêm của đồng nghiệp.</div>
+  <div class="note">Sau khi nhập mã, vẫn nên chạy <b>Bước 1</b> trên máy của bạn — tiếng ồn mỗi chỗ mỗi khác.</div>
 </div>
 
 <div class="card">
@@ -237,27 +241,28 @@
   var CAL_MS=2500, NB=32;
   var BACK_MS=1800, FWD_MS=2500;
   var LIB_MAX=200, NEG_MAX=150;
-  var NOISE_MS=20000;
+  var NOISE_MS=30000;
   var KSENS=[3.6,5.0,6.8], ABSMIN=[4,6,9];
-  var SIMADJ=[-0.03,0,0.03];
-  var STR=[0.35,0.45,0.60];
-  var GAP=[800,500,280];            // khoảng lặng để tính là TỜ MỚI
-  var SIM_FLOOR=0.86, SIM_CEIL=0.97;
+  var SIMADJ=[-0.02,0,0.025];
+  var STRLO=[0.40,0.50,0.62], STRHI=[4.5,3.2,2.4];
+  var DURLO=[0.55,0.65,0.75], DURHI=[2.0,1.7,1.4];
+  var GAP=[800,500,280];
+  var SIM_FLOOR=0.90, SIM_CEIL=0.98;
   var level=1, speed=1;
 
   // ---------- state ----------
   var ctx=null, analyser=null, stream=null, raf=null, wake=null, running=false;
-  var freq=null, prev=null;
+  var freq=null, prev=null, evtSum=null, evtFrames=0;
   var base=0, dev=1, haveBase=false;
   var calUntil=0, calVals=[], calSpecSum=null, calN=0, baseBand=null;
-  var inEvt=false, evtStart=0, evtPeak=0, evtPeakBand=null, belowN=0;
+  var inEvt=false, evtStart=0, evtPeak=0, belowN=0;
   var lastMatch=-1e9, count=0, tap=0;
   var hist=[], HISTN=260, flashUntil=0, missUntil=0;
   var lo=0, hi=0, loB=0, hiB=0, binHz=1;
-  var mem=null;                     // {v:4, lib:[], neg:[], sim, str, n}
+  var mem=null;      // {v:5, lib:[], neg:[], sim, str, dLo, dHi, n}
   var learning=false, learnMode="new", learnTarget=30;
-  var learnVecs=[], learnStr=[], learnCount=0, lastAcceptT=-1e9;
-  var noiseMode=false, noiseUntil=0, noiseVecs=[];
+  var learnVecs=[], learnStr=[], learnDur=[], learnCount=0, lastAcceptT=-1e9;
+  var noiseMode=false, noiseUntil=0, noiseVecs=[], noiseHeard=0, noiseWouldCount=0;
   var recentEvents=[], pendingUntil=0;
 
   function $(id){return document.getElementById(id);}
@@ -268,13 +273,14 @@
   function setStatus(t,c){ elStatus.textContent=t; elStatus.className="status"+(c?" "+c:""); }
   function info(t){ $("lastInfo").innerHTML=t; }
 
-  // ---------- bộ nhớ (phiên bản 4: có cả tiếng ồn) ----------
-  var KEY="a5_lib_v4";
+  // ---------- bộ nhớ (phiên bản 5) ----------
+  var KEY="a5_lib_v5";
   function loadMem(){
-    try{ ["a5_tpl","a5_profiles","a5_active","a5_mem","a5_mem2","a5_lib_v3"].forEach(function(k){localStorage.removeItem(k);}); }catch(e){}
+    try{ ["a5_tpl","a5_profiles","a5_active","a5_mem","a5_mem2","a5_lib_v3","a5_lib_v4"].forEach(function(k){localStorage.removeItem(k);}); }catch(e){}
     try{
       var s=localStorage.getItem(KEY);
-      if(s){ var o=JSON.parse(s); if(o&&o.lib&&o.lib.length&&o.lib[0].length===NB){ mem=o; if(!mem.neg) mem.neg=[]; } }
+      if(s){ var o=JSON.parse(s);
+        if(o&&o.lib&&o.lib.length&&o.lib[0].length===NB){ mem=o; if(!mem.neg) mem.neg=[]; } }
     }catch(e){ mem=null; }
   }
   function saveMem(){ try{ localStorage.setItem(KEY,JSON.stringify(mem)); }catch(e){} }
@@ -285,11 +291,10 @@
     if(mem){
       el.className="tpl";
       el.innerHTML="<b>"+mem.lib.length+" vân tiếng giấy</b> · <span class='ng'>"+(mem.neg?mem.neg.length:0)+" mẫu tiếng ồn</span><br>"+
-        (mem.neg&&mem.neg.length ? "Đã đủ hai loại — máy phân biệt được giấy với tiếng ồn."
-                                 : "<span class='ng'>Chưa dạy tiếng ồn — dễ đếm nhầm. Nên bấm “Dạy tiếng ồn phòng”.</span>");
+        "tiếng giấy của bạn: dài "+Math.round(mem.dLo)+"–"+Math.round(mem.dHi)+" ms, mạnh khoảng "+mem.str.toFixed(1);
     } else {
       el.className="tpl none";
-      el.innerHTML="<b>Thư viện trống — máy sẽ KHÔNG đếm.</b> Bấm Bắt đầu rồi dạy tiếng giấy.";
+      el.innerHTML="<b>Chưa học tiếng giấy — máy sẽ KHÔNG đếm.</b>";
     }
     var idle = running && haveBase && !learning && !noiseMode;
     $("btnLearnNew").disabled=!idle;
@@ -297,7 +302,7 @@
     $("btnLearnAdd").disabled=!(idle && mem);
     $("btnNoise").disabled=!idle;
     $("btnDelete").disabled=!(mem && !learning && !noiseMode);
-    $("learnIdle").className=(learning||noiseMode)?"hidden":"";
+    $("learnIdle").className=(learning)?"hidden":"";
     $("learnBox").className=learning?"":"hidden";
     $("noiseBox").className=noiseMode?"":"hidden";
     elCount.className = mem?"num":"num off";
@@ -340,12 +345,16 @@
   function toArr(f){ return Array.prototype.slice.call(f); }
   function unit(v){ var s=0,i; for(i=0;i<NB;i++) s+=v[i]*v[i]; s=Math.sqrt(s)||1;
     var o=new Float32Array(NB); for(i=0;i<NB;i++) o[i]=v[i]/s; return o; }
-
+  function pct(sorted,p){
+    if(!sorted.length) return 0;
+    var i=Math.min(sorted.length-1,Math.max(0,Math.round((sorted.length-1)*p)));
+    return sorted[i];
+  }
   function calcThreshold(lib){
-    if(lib.length<3) return 0.90;
+    if(lib.length<3) return 0.93;
     var sims=[],i;
     for(i=0;i<lib.length;i++){ var s=bestSim(lib[i],lib,i); if(s>-1) sims.push(s); }
-    if(sims.length<3) return 0.90;
+    if(sims.length<3) return 0.93;
     var mu=0; for(i=0;i<sims.length;i++) mu+=sims[i]; mu/=sims.length;
     var sd=0; for(i=0;i<sims.length;i++) sd+=(sims[i]-mu)*(sims[i]-mu);
     sd=Math.sqrt(sd/sims.length);
@@ -354,9 +363,27 @@
   function addNeg(fp){
     if(!mem) return;
     if(!mem.neg) mem.neg=[];
-    if(bestSim(fp,mem.neg,-1)>=0.995) return;        // đã có mẫu y hệt
+    if(bestSim(fp,mem.neg,-1)>=0.995) return;
+    if(mem.lib.length && bestSim(fp,mem.lib,-1)>=0.998) return;   // trùng khít giấy thì không ghi
     if(mem.neg.length>=NEG_MAX) mem.neg.shift();
     mem.neg.push(toArr(fp));
+  }
+
+  // quyết định: sự kiện này có phải tiếng giấy không (dùng chung cho đếm và tự kiểm)
+  function judge(fp,strength,dur){
+    if(!mem||!mem.lib.length) return {ok:false,why:"chưa học tiếng giấy"};
+    var loS=mem.str*STRLO[level], hiS=mem.str*STRHI[level];
+    if(strength<loS) return {ok:false,why:"quá nhẹ ("+strength.toFixed(1)+" < "+loS.toFixed(1)+")"};
+    if(strength>hiS) return {ok:false,why:"quá to, không giống kéo giấy ("+strength.toFixed(1)+" > "+hiS.toFixed(1)+")"};
+    var dl=mem.dLo*DURLO[level], dh=mem.dHi*DURHI[level];
+    if(dur<dl) return {ok:false,why:"quá ngắn ("+Math.round(dur)+" ms < "+Math.round(dl)+" ms)"};
+    if(dur>dh) return {ok:false,why:"quá dài ("+Math.round(dur)+" ms > "+Math.round(dh)+" ms)"};
+    var sp=bestSim(fp,mem.lib,-1);
+    var sn=(mem.neg&&mem.neg.length)?bestSim(fp,mem.neg,-1):-1;
+    if(sn>=sp-0.005) return {ok:false,why:"giống tiếng ồn hơn (ồn "+sn.toFixed(3)+" ≥ giấy "+sp.toFixed(3)+")",sp:sp,sn:sn};
+    var need=mem.sim+SIMADJ[level];
+    if(sp<need) return {ok:false,why:"âm sắc không đủ giống ("+sp.toFixed(3)+" < "+need.toFixed(3)+")",sp:sp};
+    return {ok:true,sp:sp,sn:sn};
   }
 
   // ---------- chia sẻ ----------
@@ -381,15 +408,17 @@
     if(!mem||!mem.lib.length) return "";
     var P=pick(mem.lib,MAXEXP), N=pick(mem.neg||[],MAXEXPN);
     var cp=P.length, cn=N.length;
-    var buf=new Uint8Array(13+(cp+cn)*NB);
-    buf[0]=65; buf[1]=53; buf[2]=76; buf[3]=2;          // "A5L" + định dạng 2
+    var buf=new Uint8Array(17+(cp+cn)*NB);
+    buf[0]=65; buf[1]=53; buf[2]=76; buf[3]=3;
     buf[4]=cp&255; buf[5]=(cp>>8)&255; buf[6]=NB;
     var sq=Math.round(Math.max(0,Math.min(1,mem.sim))*1000);
     buf[7]=sq&255; buf[8]=(sq>>8)&255;
     var tq=Math.round(Math.max(0,Math.min(655,mem.str))*100);
     buf[9]=tq&255; buf[10]=(tq>>8)&255;
     buf[11]=cn&255; buf[12]=(cn>>8)&255;
-    var p=13,i,b;
+    var dl=Math.round(Math.max(0,Math.min(65000,mem.dLo))), dh=Math.round(Math.max(0,Math.min(65000,mem.dHi)));
+    buf[13]=dl&255; buf[14]=(dl>>8)&255; buf[15]=dh&255; buf[16]=(dh>>8)&255;
+    var p=17,i,b;
     for(i=0;i<cp;i++) for(b=0;b<NB;b++) buf[p++]=Math.round(Math.max(0,Math.min(1,P[i][b]))*255);
     for(i=0;i<cn;i++) for(b=0;b<NB;b++) buf[p++]=Math.round(Math.max(0,Math.min(1,N[i][b]))*255);
     return "A5LIB."+b64(buf);
@@ -400,28 +429,31 @@
     var u8; try{ u8=unb64(m[1]); }catch(e){ return null; }
     if(u8.length<11 || u8[0]!==65 || u8[1]!==53 || u8[2]!==76) return null;
     var ver=u8[3];
-    if(ver!==1 && ver!==2) return null;
+    if(ver<1||ver>3) return null;
     var cp=u8[4]|(u8[5]<<8), nb=u8[6];
     if(nb!==NB || cp<1) return null;
     var sim=(u8[7]|(u8[8]<<8))/1000, str=(u8[9]|(u8[10]<<8))/100;
-    var head=(ver===2)?13:11, cn=(ver===2)?(u8[11]|(u8[12]<<8)):0;
+    var head= ver===1?11 : (ver===2?13:17);
+    var cn = ver>=2 ? (u8[11]|(u8[12]<<8)) : 0;
+    var dLo= ver>=3 ? (u8[13]|(u8[14]<<8)) : 90;
+    var dHi= ver>=3 ? (u8[15]|(u8[16]<<8)) : 350;
     if(u8.length!==head+(cp+cn)*nb) return null;
     var p=head,i,b,pos=[],neg=[],v;
     for(i=0;i<cp;i++){ v=new Float32Array(NB); for(b=0;b<NB;b++) v[b]=u8[p++]/255; pos.push(toArr(unit(v))); }
     for(i=0;i<cn;i++){ v=new Float32Array(NB); for(b=0;b<NB;b++) v[b]=u8[p++]/255; neg.push(toArr(unit(v))); }
-    return {lib:pos, neg:neg, sim:sim, str:str, n:cp};
+    return {lib:pos, neg:neg, sim:sim, str:str, dLo:dLo, dHi:dHi, n:cp};
   }
 
-  // ---------- các lựa chọn ----------
+  // ---------- lựa chọn ----------
   var HINTS=[
-    "Nhạy hơn — chấp nhận âm hơi khác thư viện. Bắt được nhiều hơn nhưng dễ đếm dư.",
+    "Nhạy hơn — nới rộng mọi điều kiện. Bắt được nhiều hơn nhưng dễ đếm dư.",
     "Vừa — cân bằng giữa bắt đủ tờ và tránh đếm nhầm.",
-    "Chắc chắn hơn — chỉ đếm âm rất giống thư viện, gần như không nhầm, có thể sót vài tờ."
+    "Chắc chắn hơn — siết chặt cả âm sắc, độ dài lẫn độ mạnh. Gần như không nhầm, có thể sót vài tờ."
   ];
   var SPHINTS=[
     "Chậm — hai tiếng cách nhau dưới 0,8 giây được coi là <b>cùng một tờ</b>. Hợp với giấy hay gấp.",
     "Vừa — hai tiếng cách nhau dưới 0,5 giây được coi là <b>cùng một tờ</b>.",
-    "Nhanh — chỉ gộp khi cách nhau dưới 0,28 giây. Hợp khi rút liên tục, nhưng tờ gấp dễ bị đếm đôi."
+    "Nhanh — chỉ gộp khi cách dưới 0,28 giây. Hợp khi rút liên tục, nhưng tờ gấp dễ bị đếm đôi."
   ];
   Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(b){
     b.addEventListener("click",function(){
@@ -451,7 +483,9 @@
       if(ctx.state==="suspended") ctx.resume();
       analyser=ctx.createAnalyser(); analyser.fftSize=1024; analyser.smoothingTimeConstant=0;
       ctx.createMediaStreamSource(st).connect(analyser);
-      freq=new Uint8Array(analyser.frequencyBinCount); prev=new Uint8Array(analyser.frequencyBinCount);
+      freq=new Uint8Array(analyser.frequencyBinCount);
+      prev=new Uint8Array(analyser.frequencyBinCount);
+      evtSum=new Float32Array(analyser.frequencyBinCount);
       recalcBins(); running=true;
       $("btnStart").textContent="Dừng"; $("btnStart").className="stop big-start";
       $("btnRecal").disabled=false;
@@ -484,31 +518,44 @@
   function keepAwake(){ if("wakeLock" in navigator) navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){}); }
   document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="visible"&&running&&!wake) keepAwake(); });
 
-  // ---------- dạy tiếng ồn ----------
+  // ---------- Bước 1: kiểm tra & dạy tiếng ồn ----------
   function startNoise(){
     if(!running||!haveBase||learning||noiseMode) return;
-    noiseMode=true; noiseVecs=[]; noiseUntil=performance.now()+NOISE_MS;
+    noiseMode=true; noiseVecs=[]; noiseHeard=0; noiseWouldCount=0;
+    noiseUntil=performance.now()+NOISE_MS;
     $("noiseFill").style.width="0%";
-    setStatus("Đang học tiếng ồn — ĐỪNG đụng vào giấy.","noise");
+    $("noiseResult").className="result hidden";
+    setStatus("Đang kiểm tra — ĐỪNG đụng vào giấy trong 30 giây.","noise");
     refreshUI();
   }
   function finishNoise(){
     noiseMode=false;
-    if(!mem){ mem={v:4,lib:[],neg:[],sim:0.90,str:6,n:0}; }
+    if(!mem) mem={v:5,lib:[],neg:[],sim:0.93,str:6,dLo:90,dHi:350,n:0};
     for(var i=0;i<noiseVecs.length;i++) addNeg(noiseVecs[i]);
     saveMem();
-    setStatus("Đã ghi "+noiseVecs.length+" mẫu tiếng ồn. Máy sẽ bỏ qua những tiếng này.","live");
+    var el=$("noiseResult"); el.className="result";
+    if(!mem.lib.length){
+      el.innerHTML="Nghe được <b>"+noiseHeard+"</b> tiếng động và đã ghi vào nhóm tiếng ồn.<br>Chưa học tiếng giấy nên chưa đánh giá được đếm nhầm.";
+      el.style.color="";
+    } else if(noiseWouldCount===0){
+      el.innerHTML="<b style='color:var(--acc)'>0 lần đếm nhầm ✓</b><br>Nghe "+noiseHeard+" tiếng động, không tiếng nào bị tính là giấy.";
+      el.style.color="";
+    } else {
+      el.innerHTML="<b style='color:var(--bad)'>"+noiseWouldCount+" lần đáng lẽ đếm nhầm</b><br>Đã ghi "+noiseHeard+" tiếng vào nhóm tiếng ồn. <b>Hãy bấm chạy lại lần nữa</b> — mỗi lần chạy máy càng chặn tốt hơn.";
+      el.style.color="";
+    }
+    setStatus("Xong kiểm tra tiếng ồn.","live");
     if(navigator.vibrate) navigator.vibrate([30,40,30]);
     refreshUI();
   }
 
-  // ---------- học tiếng giấy ----------
+  // ---------- Bước 2: học tiếng giấy ----------
   function startLearn(mode){
     if(!running||!haveBase||learning||noiseMode) return;
     var t=parseInt($("learnN").value,10);
     if(!(t>=10)) t=30; if(t>100) t=100;
     learnTarget=t; $("learnN").value=t;
-    learning=true; learnMode=mode; learnVecs=[]; learnStr=[]; learnCount=0;
+    learning=true; learnMode=mode; learnVecs=[]; learnStr=[]; learnDur=[]; learnCount=0;
     recentEvents=[]; pendingUntil=0; lastAcceptT=-1e9;
     $("learnFill").style.width="0%";
     $("cfN").textContent="0/"+learnTarget;
@@ -517,12 +564,12 @@
     refreshUI();
   }
   function cancelLearn(){ learning=false; pendingUntil=0; setStatus("Đã huỷ học.",""); refreshUI(); }
-
-  function acceptSample(fp,strength,t){
-    learnVecs.push(fp); learnStr.push(strength); learnCount++; lastAcceptT=t;
+  function acceptSample(ev){
+    learnVecs.push(ev.fp); learnStr.push(ev.str); learnDur.push(ev.dur);
+    learnCount++; lastAcceptT=ev.t;
     $("learnFill").style.width=Math.min(100,learnCount/learnTarget*100)+"%";
     $("cfN").textContent=learnCount+"/"+learnTarget;
-    $("learnMsg").textContent="Đã ghi "+learnCount+"/"+learnTarget+" tờ. Kéo tờ tiếp theo rồi xác nhận.";
+    $("learnMsg").textContent="Đã ghi "+learnCount+"/"+learnTarget+" tờ (dài "+Math.round(ev.dur)+" ms). Kéo tờ tiếp theo.";
     if(navigator.vibrate) navigator.vibrate(16);
     if(learnCount>=learnTarget) finishLearn();
   }
@@ -534,9 +581,8 @@
     }
     if(bi>=0){
       var ev=recentEvents.splice(bi,1)[0];
-      // các tiếng còn lại trong cùng chuỗi (tờ gấp) -> bỏ, không coi là tiếng ồn
       recentEvents=recentEvents.filter(function(e){ return Math.abs(e.t-ev.t)>1200; });
-      acceptSample(ev.fp,ev.str,ev.t);
+      acceptSample(ev);
     } else {
       pendingUntil=now+FWD_MS;
       $("learnMsg").textContent="Chưa nghe thấy tiếng kéo — kéo 1 tờ ngay bây giờ…";
@@ -544,26 +590,29 @@
   }
   function onUndo(){
     if(!learning||!learnCount) return;
-    learnVecs.pop(); learnStr.pop(); learnCount--;
+    learnVecs.pop(); learnStr.pop(); learnDur.pop(); learnCount--;
     $("learnFill").style.width=Math.min(100,learnCount/learnTarget*100)+"%";
     $("cfN").textContent=learnCount+"/"+learnTarget;
     $("learnMsg").textContent="Đã bỏ tờ vừa rồi. Còn "+learnCount+"/"+learnTarget+".";
   }
   function finishLearn(){
     var oldNeg=(mem&&mem.neg)?mem.neg.slice():[];
-    var lib = (learnMode==="add" && mem) ? mem.lib.slice() : [];
+    var lib=(learnMode==="add"&&mem)?mem.lib.slice():[];
     for(var i=0;i<learnVecs.length;i++) lib.push(toArr(learnVecs[i]));
     while(lib.length>LIB_MAX) lib.shift();
 
     var ss=learnStr.slice().sort(function(a,b){return a-b;});
-    var strMed=ss[Math.floor(ss.length/2)]||6;
-    if(learnMode==="add" && mem) strMed=(mem.str+strMed)/2;
-
-    mem={ v:4, lib:lib, neg:oldNeg, sim:calcThreshold(lib), str:strMed,
-          n:((learnMode==="add"&&mem)?mem.n:0)+learnCount };
+    var ds=learnDur.slice().sort(function(a,b){return a-b;});
+    var strMed=pct(ss,0.5)||6;
+    var dLo=pct(ds,0.10)||90, dHi=pct(ds,0.90)||350;
+    if(learnMode==="add"&&mem){
+      strMed=(mem.str+strMed)/2;
+      dLo=Math.min(mem.dLo,dLo); dHi=Math.max(mem.dHi,dHi);
+    }
+    mem={ v:5, lib:lib, neg:oldNeg, sim:calcThreshold(lib), str:strMed,
+          dLo:dLo, dHi:dHi, n:((learnMode==="add"&&mem)?mem.n:0)+learnCount };
     saveMem(); learning=false; pendingUntil=0;
-    setStatus("Đã học xong "+lib.length+" vân tiếng giấy."+
-              (mem.neg.length?"":" Giờ hãy bấm “Dạy tiếng ồn phòng”."),"live");
+    setStatus("Đã học "+lib.length+" vân · tiếng giấy dài "+Math.round(dLo)+"–"+Math.round(dHi)+" ms.","live");
     if(navigator.vibrate) navigator.vibrate([40,40,40]);
     refreshUI();
   }
@@ -595,32 +644,37 @@
       var avg=new Float32Array(freq.length);
       for(i=0;i<freq.length;i++) avg[i]=calSpecSum[i]/Math.max(1,calN);
       baseBand=bandOf(avg); haveBase=true; calVals=[];
-      setStatus(mem?"Đang nghe — cứ kéo giấy, mỗi tờ 1 tiếng đếm."
-                   :"CHƯA HỌC nên máy không đếm. Bấm “Học tiếng giấy”.", mem?"live":"prep");
+      setStatus(mem&&mem.lib.length?"Đang nghe — cứ kéo giấy, mỗi tờ 1 tiếng đếm."
+                   :"Chưa học tiếng giấy nên máy không đếm.", (mem&&mem.lib.length)?"live":"prep");
       refreshUI();
     }
 
     if(noiseMode){
       if(now>=noiseUntil) finishNoise();
-      else $("noiseFill").style.width=Math.min(100,(1-(noiseUntil-now)/NOISE_MS)*100)+"%";
+      else {
+        $("noiseFill").style.width=Math.min(100,(1-(noiseUntil-now)/NOISE_MS)*100)+"%";
+        $("noiseMsg").textContent="Còn "+Math.ceil((noiseUntil-now)/1000)+" giây — ĐỪNG đụng vào giấy. Đã nghe "+noiseHeard+" tiếng"+(noiseWouldCount?", "+noiseWouldCount+" tiếng suýt bị đếm":"")+".";
+      }
     }
 
     var thr=base+KSENS[level]*(dev+0.3);
 
     if(!inEvt){
       if(haveBase && flux>thr && (flux-base)>=ABSMIN[level]){
-        inEvt=true; evtStart=now; evtPeak=flux; evtPeakBand=bandOf(freq); belowN=0;
+        inEvt=true; evtStart=now; evtPeak=flux; belowN=0;
+        evtSum.set(freq); evtFrames=1;
       } else {
         var a=0.03; base=(1-a)*base+a*flux; dev=(1-a)*dev+a*Math.abs(flux-base); if(dev<0.4)dev=0.4;
       }
     } else {
-      if(flux>evtPeak){ evtPeak=flux; evtPeakBand=bandOf(freq); }
+      if(flux>evtPeak) evtPeak=flux;
+      for(i=0;i<freq.length;i++) evtSum[i]+=freq[i];
+      evtFrames++;
       var sus=base+0.45*KSENS[level]*(dev+0.3);
       if(flux>sus){ belowN=0; } else { belowN++; if(belowN>3) endEvent(now); }
       if(now-evtStart>MAXD) endEvent(now);
     }
 
-    // tiếng không được xác nhận trong lúc học -> ghi vào nhóm tiếng ồn
     while(recentEvents.length && now-recentEvents[0].t>3000){
       var old=recentEvents.shift();
       if(learning && Math.abs(old.t-lastAcceptT)>2500) addNeg(old.fp);
@@ -634,43 +688,38 @@
     inEvt=false; belowN=0;
     var dur=now-evtStart;
     if(dur<MIND || dur>MAXD) return;
-    var fp=fingerprint(evtPeakBand), strength=evtPeak-base;
 
-    if(noiseMode){ noiseVecs.push(fp); return; }
+    // vân = phổ TRUNG BÌNH cả quãng tiếng (ổn định hơn nhiều so với 1 khoảnh khắc)
+    var avg=new Float32Array(freq.length), i;
+    for(i=0;i<freq.length;i++) avg[i]=evtSum[i]/Math.max(1,evtFrames);
+    var fp=fingerprint(bandOf(avg)), strength=evtPeak-base;
 
+    if(noiseMode){
+      noiseHeard++;
+      noiseVecs.push(fp);
+      if(judge(fp,strength,dur).ok) noiseWouldCount++;
+      return;
+    }
     if(learning){
-      if(now<pendingUntil){ pendingUntil=0; acceptSample(fp,strength,now); }
-      else recentEvents.push({t:now,fp:fp,str:strength});
+      var ev={t:now,fp:fp,str:strength,dur:dur};
+      if(now<pendingUntil){ pendingUntil=0; acceptSample(ev); }
+      else recentEvents.push(ev);
       return;
     }
 
-    if(!mem||!mem.lib.length) return;
+    var v=judge(fp,strength,dur);
+    if(!v.ok){ missUntil=now+160; info("bỏ · "+v.why); return; }
 
-    var sp=bestSim(fp,mem.lib,-1);
-    var sn=(mem.neg&&mem.neg.length)?bestSim(fp,mem.neg,-1):-1;
-    var need=mem.sim+SIMADJ[level];
-
-    if(strength < mem.str*STR[level]){
-      missUntil=now+160; info("bỏ · quá nhẹ (mạnh "+strength.toFixed(1)+", cần "+(mem.str*STR[level]).toFixed(1)+")"); return;
-    }
-    if(sn>=sp-0.005){
-      missUntil=now+160; info("bỏ · <b style='color:var(--noise)'>giống tiếng ồn</b> (ồn "+sn.toFixed(3)+" ≥ giấy "+sp.toFixed(3)+")"); return;
-    }
-    if(sp<need){
-      missUntil=now+160; info("bỏ · không đủ giống (giống "+sp.toFixed(3)+", cần "+need.toFixed(3)+")"); return;
-    }
-
-    // GỘP CHUỖI: tờ gấp kêu nhiều tiếng -> vẫn chỉ 1 tờ
     var since=now-lastMatch;
     if(since<=GAP[speed]){
-      lastMatch=now;                       // tiếng nối tiếp kéo dài chuỗi
+      lastMatch=now;
       info("cùng 1 tờ · tiếng nối tiếp cách "+Math.round(since)+" ms → đã gộp, không đếm thêm");
       return;
     }
     lastMatch=now;
     count++; flashUntil=now+160; render();
     if(navigator.vibrate) navigator.vibrate(18);
-    info("<b style='color:var(--acc)'>ĐẾM</b> · giống "+sp.toFixed(3)+" · mạnh "+strength.toFixed(1)+" · dài "+Math.round(dur)+" ms");
+    info("<b style='color:var(--acc)'>ĐẾM</b> · giống "+v.sp.toFixed(3)+" · mạnh "+strength.toFixed(1)+" · dài "+Math.round(dur)+" ms");
   }
 
   function pushHist(f,t,mark){ hist.push({f:f,t:t,h:mark}); if(hist.length>HISTN) hist.shift(); }
@@ -693,13 +742,13 @@
 
   function render(){
     elCount.textContent=count;
-    elCount.className=(performance.now()<flashUntil)?"num hit":(mem?"num":"num off");
+    elCount.className=(performance.now()<flashUntil)?"num hit":((mem&&mem.lib.length)?"num":"num off");
     $("s1").textContent=count; $("s2").textContent=tap; $("tapn").textContent=tap;
     var v=$("verdict");
     if(tap===0){ v.textContent="Chưa có dữ liệu đối chiếu."; v.style.color=""; return; }
-    var diff=count-tap, pct=100*(1-Math.abs(diff)/tap);
+    var diff=count-tap, p=100*(1-Math.abs(diff)/tap);
     var word=diff===0?"khớp hoàn toàn":(diff>0?"máy đếm DƯ "+diff+" tờ":"máy đếm THIẾU "+(-diff)+" tờ");
-    v.innerHTML="<b>"+word+"</b><br>độ chính xác "+pct.toFixed(1)+"% trên "+tap+" tờ";
+    v.innerHTML="<b>"+word+"</b><br>độ chính xác "+p.toFixed(1)+"% trên "+tap+" tờ";
     v.style.color=Math.abs(diff)===0?"var(--acc)":(Math.abs(diff)<=tap*0.02?"var(--warn)":"var(--bad)");
   }
 
@@ -723,18 +772,20 @@
     var got=parseCode($("codeIn").value);
     if(!got){ shareMsg("<b>Mã không hợp lệ.</b> Hãy chép lại đầy đủ, mã bắt đầu bằng “A5LIB.”","var(--bad)"); return; }
     if(learning||noiseMode){ shareMsg("Đang học dở — dừng lại trước đã.","var(--warn)"); return; }
-    var lib,neg,keptStr;
-    if(mode==="merge" && mem){
-      lib=mem.lib.concat(got.lib); neg=(mem.neg||[]).concat(got.neg||[]); keptStr=mem.str;
+    var lib,neg,keptStr,dLo,dHi;
+    if(mode==="merge"&&mem&&mem.lib.length){
+      lib=mem.lib.concat(got.lib); neg=(mem.neg||[]).concat(got.neg||[]);
+      keptStr=mem.str; dLo=Math.min(mem.dLo,got.dLo); dHi=Math.max(mem.dHi,got.dHi);
     } else {
-      lib=got.lib.slice(); neg=(got.neg||[]).slice(); keptStr=(mem?mem.str:got.str);
+      lib=got.lib.slice(); neg=(got.neg||[]).slice();
+      keptStr=(mem&&mem.lib.length?mem.str:got.str); dLo=got.dLo; dHi=got.dHi;
     }
     while(lib.length>LIB_MAX) lib.shift();
     while(neg.length>NEG_MAX) neg.shift();
-    mem={ v:4, lib:lib, neg:neg, sim:calcThreshold(lib), str:keptStr,
+    mem={ v:5, lib:lib, neg:neg, sim:calcThreshold(lib), str:keptStr, dLo:dLo, dHi:dHi,
           n:(mode==="merge"&&mem?mem.n:0)+got.n };
     saveMem(); refreshUI(); $("codeIn").value="";
-    shareMsg("<b>Đã nhận "+got.lib.length+" vân giấy và "+(got.neg?got.neg.length:0)+" mẫu ồn.</b> Nên bấm “Dạy tiếng ồn phòng” trên máy này, vì mỗi chỗ ồn mỗi khác.","var(--acc)");
+    shareMsg("<b>Đã nhận "+got.lib.length+" vân giấy và "+(got.neg?got.neg.length:0)+" mẫu ồn.</b> Hãy chạy <b>Bước 1</b> trên máy này.","var(--acc)");
     if(navigator.vibrate) navigator.vibrate([30,40,30]);
   }
 
