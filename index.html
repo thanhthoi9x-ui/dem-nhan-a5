@@ -49,6 +49,7 @@
   button.tap{padding:26px 8px;font-size:19px;background:#1f2b3d;border-color:#2f4a6b}
   .mini{font-size:13px;padding:11px 6px}
   .big-start{padding:16px 8px;font-size:17px}
+  .hidden{display:none!important}
 
   canvas{width:100%;height:88px;display:block;background:#0a0e14;border-radius:9px;border:1px solid var(--line)}
   .legend{display:flex;gap:14px;font-size:10.5px;color:var(--dim);margin-top:7px;flex-wrap:wrap}
@@ -58,9 +59,13 @@
   .seg button{flex:1;font-size:13px;padding:11px 4px}
   .seg button.on{background:var(--acc2);border-color:var(--acc2);color:#04121f}
 
-  .tpl{font-size:12.5px;padding:9px 11px;border-radius:9px;background:var(--panel2);margin-bottom:11px;line-height:1.45}
+  select,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--tx);
+    border-radius:9px;padding:12px;font-size:15px;font-family:inherit}
+  .tpl{font-size:12.5px;padding:9px 11px;border-radius:9px;background:var(--panel2);margin:11px 0;line-height:1.45}
   .tpl b{color:var(--learn)}
   .tpl.none b{color:var(--warn)}
+  .learnbar{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;margin:10px 0 4px}
+  .learnbar>i{display:block;height:100%;width:0;background:var(--learn);transition:width .15s}
 
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center}
   .stat{background:var(--panel2);border-radius:10px;padding:12px 6px}
@@ -77,7 +82,7 @@
 <body>
 
 <h1>Đếm nhãn A5 bằng âm thanh <span class="pill" id="state">chưa chạy</span></h1>
-<div class="sub">Đặt điện thoại cách chỗ kéo giấy 20–40 cm. Bấm <b>Bắt đầu</b>, giữ yên 3 giây để máy nghe độ ồn phòng. Lần đầu, hãy <b>Học tiếng giấy</b> để máy chỉ đếm đúng tiếng kéo giấy.</div>
+<div class="sub">Nhiều người dùng chung — mỗi người kéo giấy một kiểu, mỗi phòng một độ ồn. Vì vậy mỗi người nên tạo một <b>mẫu ghi nhớ</b> riêng: học ít nhất 20 tờ một lần, máy lưu lại, lần sau chỉ cần chọn tên mình rồi đếm.</div>
 
 <div class="err" id="err"></div>
 
@@ -98,16 +103,35 @@
 </div>
 
 <div class="card learn">
-  <h2>Dạy máy tiếng giấy</h2>
-  <div class="tpl none" id="tplInfo"><b>Chưa học mẫu nào.</b> Máy sẽ đếm theo độ mạnh — dễ nhầm. Nên dạy tiếng giấy một lần.</div>
-  <div class="row">
-    <button class="learnb" id="btnLearn" disabled>Học tiếng giấy (kéo 8 tờ)</button>
+  <h2>Mẫu ghi nhớ tiếng giấy</h2>
+
+  <label style="font-size:12px;color:var(--dim)">Đang dùng mẫu của:</label>
+  <select id="profSel" style="margin-top:5px"></select>
+  <div class="tpl none" id="tplInfo"></div>
+
+  <!-- khu vực học -->
+  <div id="learnIdle">
+    <input type="text" id="profName" placeholder="Tên mẫu mới (VD: Anh Nam · Kho A)" style="margin-bottom:8px">
+    <div class="row">
+      <button class="learnb" id="btnLearnNew" disabled>Học mẫu mới (kéo 20 tờ)</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="ghost mini" id="btnLearnAdd" disabled>Học thêm cho mẫu này</button>
+      <button class="ghost mini" id="btnRename" disabled>Đổi tên</button>
+      <button class="ghost mini" id="btnDelete" disabled>Xoá mẫu</button>
+    </div>
   </div>
-  <div class="row" style="margin-top:8px">
-    <button class="ghost mini" id="btnLearnAdd" disabled>Học thêm mẫu</button>
-    <button class="ghost mini" id="btnLearnClear" disabled>Xoá mẫu đã học</button>
+
+  <!-- đang học -->
+  <div id="learnBox" class="hidden">
+    <div class="learnbar"><i id="learnFill"></i></div>
+    <div class="note" style="margin-top:4px;color:var(--learn)" id="learnMsg">Kéo TỪ TỪ từng tờ, đều tay như lúc làm thật…</div>
+    <div class="row" style="margin-top:9px">
+      <button class="ghost mini" id="btnLearnCancel">Huỷ học</button>
+    </div>
   </div>
-  <div class="note">Máy ghi lại “vân âm thanh” của tiếng kéo giấy rồi chỉ đếm âm nào <b>giống vân đó</b> — tiếng nói chuyện, gõ phím, va chạm sẽ bị bỏ qua. Mẫu được lưu trong máy, không cần học lại mỗi lần.</div>
+
+  <div class="note">Máy ghi “vân âm thanh” tiếng kéo giấy của bạn rồi chỉ đếm âm nào <b>giống vân đó</b> — nói chuyện, gõ phím, va chạm sẽ bị bỏ. Mỗi người một mẫu riêng, lưu ngay trong máy này.</div>
 </div>
 
 <div class="card">
@@ -156,91 +180,103 @@
 (function(){
   "use strict";
 
-  // ---------- cấu hình cố định ----------
-  var LO=2000, HI=11000;     // dải tần đưa vào vân (bỏ tiếng nói trầm)
-  var MIND=60;               // độ dài tối thiểu (ms) — lọc tiếng gõ phím
-  var REFR=170;              // khoảng cách tối thiểu giữa 2 tờ (ms)
-  var CAL_MS=2500;           // tự đo nền khi bắt đầu
-  var NB=32;                 // số dải để tạo "vân âm thanh"
-  var LEARN_TARGET=8;
-  // độ giống tối thiểu để tính là tiếng giấy, theo mức [Nhạy, Vừa, Chắc chắn]
-  var SIM=[0.78, 0.86, 0.92];
-  // khi CHƯA học mẫu: dùng độ mạnh làm ngưỡng
+  // ---------- cấu hình ----------
+  var LO=2000, HI=11000, MIND=60, REFR=170, CAL_MS=2500, NB=32;
+  var LEARN_TARGET=20;                    // học tối thiểu 20 tờ
+  var SIM=[0.78,0.86,0.92];
   var KSENS=[3.4,5.0,7.2], ABSMIN=[3.5,5.5,8.5];
   var level=1;
 
   // ---------- state ----------
-  var ctx=null, analyser=null, stream=null, raf=null, wake=null;
-  var running=false;
+  var ctx=null, analyser=null, stream=null, raf=null, wake=null, running=false;
   var freq=null, prev=null;
   var base=0, dev=1, haveBase=false;
   var calUntil=0, calVals=[], calSpecSum=null, calN=0, baseBand=null;
   var inEvt=false, evtStart=0, evtPeak=0, evtPeakBand=null, belowN=0;
-  var lastCount=-1e9;
-  var count=0, tap=0;
-  var hist=[], HISTN=260;
-  var flashUntil=0, missUntil=0;
-  var binHz=1, lo=0, hi=0, loB=0, hiB=0;
-  var template=null;               // Float32Array(NB), đã chuẩn hoá
-  var learning=false, learnVecs=[], learnCount=0;
+  var lastCount=-1e9, count=0, tap=0;
+  var hist=[], HISTN=260, flashUntil=0, missUntil=0;
+  var lo=0, hi=0, loB=0, hiB=0, binHz=1;
+  var profiles=[], activeId=null;
+  var learning=false, learnMode="new", learnVecs=[], learnCount=0;
 
-  // ---------- dom ----------
   function $(id){return document.getElementById(id);}
   var elCount=$("count"), elErr=$("err"), elState=$("state"), elStatus=$("status");
   var cv=$("cv"), g=cv.getContext("2d");
   function err(m){ elErr.textContent=m; elErr.style.display="block"; }
   function clearErr(){ elErr.style.display="none"; }
-  function setStatus(txt,cls){ elStatus.textContent=txt; elStatus.className="status"+(cls?" "+cls:""); }
+  function setStatus(t,c){ elStatus.textContent=t; elStatus.className="status"+(c?" "+c:""); }
 
-  // ---------- lưu / nạp mẫu ----------
-  function saveTpl(){ try{ localStorage.setItem("a5_tpl", JSON.stringify(Array.prototype.slice.call(template))); }catch(e){} }
-  function loadTpl(){
+  // ---------- hồ sơ mẫu (bộ nhớ) ----------
+  function genId(){ return "p"+Date.now()+"_"+Math.floor(Math.random()*9999); }
+  function loadProfiles(){
     try{
-      var s=localStorage.getItem("a5_tpl");
-      if(s){ var a=JSON.parse(s); if(a&&a.length===NB){ template=new Float32Array(a); } }
-    }catch(e){}
+      var s=localStorage.getItem("a5_profiles"); if(s){ profiles=JSON.parse(s)||[]; }
+      activeId=localStorage.getItem("a5_active")||null;
+      // chuyển mẫu cũ (bản trước) sang hồ sơ
+      var old=localStorage.getItem("a5_tpl");
+      if(old && !profiles.length){
+        var a=JSON.parse(old);
+        if(a && a.length===NB){ var p={id:genId(),name:"Mẫu cũ",tpl:a,n:8}; profiles.push(p); activeId=p.id; }
+        localStorage.removeItem("a5_tpl");
+      }
+    }catch(e){ profiles=[]; }
+    if(!activeProfile() && profiles.length) activeId=profiles[0].id;
+    saveProfiles();
   }
-  function clearTpl(){ template=null; try{localStorage.removeItem("a5_tpl");}catch(e){} }
+  function saveProfiles(){ try{ localStorage.setItem("a5_profiles",JSON.stringify(profiles)); localStorage.setItem("a5_active",activeId||""); }catch(e){} }
+  function activeProfile(){ for(var i=0;i<profiles.length;i++) if(profiles[i].id===activeId) return profiles[i]; return null; }
 
-  function tplInfo(){
-    var el=$("tplInfo");
-    if(template){ el.className="tpl"; el.innerHTML="<b>Đã học tiếng giấy.</b> Máy chỉ đếm âm giống mẫu đã học."; }
-    else { el.className="tpl none"; el.innerHTML="<b>Chưa học mẫu nào.</b> Máy sẽ đếm theo độ mạnh — dễ nhầm. Nên dạy tiếng giấy một lần."; }
-    $("btnLearnClear").disabled = !template || !running && false; // luôn cho xoá nếu có mẫu
-    $("btnLearnClear").disabled = !template;
-    $("btnLearnAdd").disabled = !template || !running;
+  function fillSel(){
+    var sel=$("profSel"); sel.innerHTML="";
+    if(!profiles.length){
+      var o=document.createElement("option"); o.value=""; o.textContent="(chưa có mẫu nào)"; sel.appendChild(o);
+    } else {
+      profiles.forEach(function(p){
+        var o=document.createElement("option"); o.value=p.id;
+        o.textContent=p.name+" · "+p.n+" tờ"; if(p.id===activeId)o.selected=true;
+        sel.appendChild(o);
+      });
+    }
   }
+  function refreshUI(){
+    fillSel();
+    var ap=activeProfile(), el=$("tplInfo");
+    if(ap){ el.className="tpl"; el.innerHTML="Máy sẽ chỉ đếm âm giống mẫu <b>“"+esc(ap.name)+"”</b> (đã học "+ap.n+" tờ)."; }
+    else { el.className="tpl none"; el.innerHTML="<b>Chưa chọn mẫu.</b> Máy tạm đếm theo độ mạnh — dễ nhầm. Hãy học một mẫu."; }
+    var canLearn = running && haveBase && !learning;
+    $("btnLearnNew").disabled=!canLearn;
+    $("btnLearnAdd").disabled=!(canLearn && ap);
+    $("btnRename").disabled=!(ap && !learning);
+    $("btnDelete").disabled=!(ap && !learning);
+    $("learnIdle").className=learning?"hidden":"";
+    $("learnBox").className=learning?"":"hidden";
+  }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];}); }
 
   function recalcBins(){
     if(!ctx) return;
-    binHz = ctx.sampleRate / analyser.fftSize;
-    lo = Math.max(1, Math.floor(LO/binHz));
-    hi = Math.min(analyser.frequencyBinCount-1, Math.ceil(HI/binHz));
-    if(hi<=lo) hi=lo+1;
-    loB=lo; hiB=hi;
+    binHz=ctx.sampleRate/analyser.fftSize;
+    lo=Math.max(1,Math.floor(LO/binHz));
+    hi=Math.min(analyser.frequencyBinCount-1,Math.ceil(HI/binHz));
+    if(hi<=lo) hi=lo+1; loB=lo; hiB=hi;
   }
-
-  // ---------- vân âm thanh: gộp phổ trong [lo..hi] thành NB dải ----------
   function bandOf(arr){
-    var v=new Float32Array(NB);
-    var span=hiB-loB+1, per=span/NB;
+    var v=new Float32Array(NB), span=hiB-loB+1, per=span/NB;
     for(var b=0;b<NB;b++){
       var a0=loB+Math.floor(b*per), a1=loB+Math.floor((b+1)*per), s=0,c=0;
-      if(a1<=a0) a1=a0+1;
+      if(a1<=a0)a1=a0+1;
       for(var j=a0;j<a1;j++){ s+=arr[j]; c++; }
       v[b]=c?s/c:0;
     }
     return v;
   }
-  // vân của MỘT sự kiện = (phổ đỉnh − phổ nền) đã chuẩn hoá về vector đơn vị
-  function fingerprint(peakBand){
+  function fingerprint(pk){
     var f=new Float32Array(NB), s=0;
-    for(var b=0;b<NB;b++){ var d=peakBand[b]-(baseBand?baseBand[b]:0); if(d<0)d=0; f[b]=d; s+=d*d; }
-    s=Math.sqrt(s)||1;
-    for(b=0;b<NB;b++) f[b]/=s;
-    return f;
+    for(var b=0;b<NB;b++){ var d=pk[b]-(baseBand?baseBand[b]:0); if(d<0)d=0; f[b]=d; s+=d*d; }
+    s=Math.sqrt(s)||1; for(b=0;b<NB;b++) f[b]/=s; return f;
   }
   function dot(a,b){ var s=0; for(var i=0;i<NB;i++) s+=a[i]*b[i]; return s; }
+  function normalize(v){ var s=0,i; for(i=0;i<NB;i++)s+=v[i]*v[i]; s=Math.sqrt(s)||1; for(i=0;i<NB;i++)v[i]/=s; return v; }
 
   // ---------- độ nhạy ----------
   var HINTS=[
@@ -252,8 +288,7 @@
     b.addEventListener("click",function(){
       level=+b.getAttribute("data-lv");
       Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.remove("on");});
-      b.classList.add("on");
-      $("segHint").textContent=HINTS[level];
+      b.classList.add("on"); $("segHint").textContent=HINTS[level];
     });
   });
 
@@ -264,24 +299,18 @@
       err("Trình duyệt không hỗ trợ thu âm. Hãy mở trang bằng Chrome hoặc Safari trên điện thoại."); return;
     }
     setStatus("Đang xin quyền micro…","prep");
-    navigator.mediaDevices.getUserMedia({audio:{
-      echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1
-    }}).then(function(st){
+    navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1}}).then(function(st){
       stream=st;
-      var AC=window.AudioContext||window.webkitAudioContext;
-      ctx=new AC();
+      var AC=window.AudioContext||window.webkitAudioContext; ctx=new AC();
       if(ctx.state==="suspended") ctx.resume();
-      analyser=ctx.createAnalyser();
-      analyser.fftSize=1024; analyser.smoothingTimeConstant=0;
+      analyser=ctx.createAnalyser(); analyser.fftSize=1024; analyser.smoothingTimeConstant=0;
       ctx.createMediaStreamSource(st).connect(analyser);
-      freq=new Uint8Array(analyser.frequencyBinCount);
-      prev=new Uint8Array(analyser.frequencyBinCount);
-      recalcBins();
-      running=true;
+      freq=new Uint8Array(analyser.frequencyBinCount); prev=new Uint8Array(analyser.frequencyBinCount);
+      recalcBins(); running=true;
       $("btnStart").textContent="Dừng"; $("btnStart").className="stop big-start";
-      $("btnRecal").disabled=false; $("btnLearn").disabled=false;
+      $("btnRecal").disabled=false;
       elState.textContent="đang nghe"; elState.className="pill live";
-      keepAwake(); beginCal(); tplInfo(); loop();
+      keepAwake(); beginCal(); refreshUI(); loop();
     }).catch(function(e){
       setStatus("Bấm “Bắt đầu” để mở máy nghe.","");
       err("Không truy cập được micro ("+(e&&e.name?e.name:"lỗi")+"). Kiểm tra: trang phải chạy qua HTTPS, và bạn phải cho phép quyền micro cho trang này.");
@@ -294,10 +323,11 @@
     if(ctx) ctx.close();
     ctx=null; stream=null; haveBase=false; inEvt=false;
     $("btnStart").textContent="Bắt đầu"; $("btnStart").className="pri big-start";
-    $("btnRecal").disabled=true; $("btnLearn").disabled=true; $("btnLearnAdd").disabled=true;
+    $("btnRecal").disabled=true;
     elState.textContent="đã dừng"; elState.className="pill";
     setStatus("Đã dừng. Bấm “Bắt đầu” để nghe tiếp.","");
     if(wake){ try{wake.release();}catch(e){} wake=null; }
+    refreshUI();
   }
   function beginCal(){
     haveBase=false; base=0; dev=1; calVals=[]; inEvt=false;
@@ -305,28 +335,51 @@
     calUntil=performance.now()+CAL_MS;
     setStatus("Đang nghe độ ồn phòng — GIỮ YÊN, đừng kéo giấy…","prep");
   }
-  function keepAwake(){
-    if("wakeLock" in navigator) navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){});
-  }
-  document.addEventListener("visibilitychange",function(){
-    if(document.visibilityState==="visible" && running && !wake) keepAwake();
-  });
+  function keepAwake(){ if("wakeLock" in navigator) navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){}); }
+  document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="visible"&&running&&!wake) keepAwake(); });
 
-  // ---------- học tiếng giấy ----------
-  function startLearn(){
-    if(!running || !haveBase) return;
-    learning=true; learnVecs=[]; learnCount=0;
-    setStatus("Học tiếng giấy: kéo TỪ TỪ từng tờ (cần "+LEARN_TARGET+" tờ)…","learn");
+  // ---------- học ----------
+  function startLearn(mode){
+    if(!running||!haveBase||learning) return;
+    if(mode==="new"){
+      var nm=($("profName").value||"").trim();
+      if(!nm) nm="Người "+(profiles.length+1);
+      startLearn._name=nm;
+    }
+    learning=true; learnMode=mode; learnVecs=[]; learnCount=0;
+    $("learnFill").style.width="0%";
+    $("learnMsg").textContent=(mode==="new"?"Học mẫu mới":"Học thêm")+": kéo TỪ TỪ từng tờ, đều tay như lúc làm thật… 0/"+LEARN_TARGET;
+    setStatus("Đang học tiếng giấy — kéo "+LEARN_TARGET+" tờ.","learn");
+    refreshUI();
+  }
+  function cancelLearn(){
+    learning=false;
+    setStatus("Đã huỷ học. Mẫu cũ giữ nguyên.","");
+    refreshUI();
   }
   function finishLearn(){
-    var t=new Float32Array(NB), i, b, s=0;
+    var t=new Float32Array(NB), i,b;
     for(i=0;i<learnVecs.length;i++) for(b=0;b<NB;b++) t[b]+=learnVecs[i][b];
-    for(b=0;b<NB;b++){ t[b]/=learnVecs.length; s+=t[b]*t[b]; }
-    s=Math.sqrt(s)||1; for(b=0;b<NB;b++) t[b]/=s;
-    template=t; saveTpl(); learning=false;
-    tplInfo();
-    setStatus("Đã học xong tiếng giấy ("+learnCount+" mẫu). Giờ máy chỉ đếm âm giống mẫu.","live");
+    for(b=0;b<NB;b++) t[b]/=learnVecs.length;
+    normalize(t);
+    if(learnMode==="new"){
+      var p={id:genId(), name:startLearn._name||("Người "+(profiles.length+1)), tpl:Array.prototype.slice.call(t), n:learnCount};
+      profiles.push(p); activeId=p.id;
+      $("profName").value="";
+    } else {
+      var ap=activeProfile();
+      if(ap){
+        var c=new Float32Array(NB), w1=ap.n, w2=learnCount;
+        for(b=0;b<NB;b++) c[b]=ap.tpl[b]*w1 + t[b]*w2;
+        normalize(c);
+        ap.tpl=Array.prototype.slice.call(c); ap.n=w1+w2;
+      }
+    }
+    learning=false; saveProfiles();
+    var cur=activeProfile();
+    setStatus("Đã lưu mẫu “"+(cur?cur.name:"")+"” ("+(cur?cur.n:0)+" tờ). Giờ máy chỉ đếm âm giống mẫu.","live");
     if(navigator.vibrate) navigator.vibrate([40,40,40]);
+    refreshUI();
   }
 
   // ---------- vòng lặp ----------
@@ -338,52 +391,43 @@
 
     var flux=0,n=0;
     for(var i=lo;i<=hi;i++){ var d=freq[i]-prev[i]; if(d>0) flux+=d; n++; }
-    flux=n?flux/n:0;
-    prev.set(freq);
+    flux=n?flux/n:0; prev.set(freq);
 
-    // tự đo nền
     if(now<calUntil){
       calVals.push(flux);
       for(i=0;i<freq.length;i++) calSpecSum[i]+=freq[i];
       calN++;
-      var left=Math.ceil((calUntil-now)/1000);
-      setStatus("Đang nghe độ ồn phòng — GIỮ YÊN… "+left,"prep");
+      setStatus("Đang nghe độ ồn phòng — GIỮ YÊN… "+Math.ceil((calUntil-now)/1000),"prep");
       pushHist(flux,0,0); draw(); return;
     } else if(calVals.length){
-      var s2=0,k;
-      for(k=0;k<calVals.length;k++) s2+=calVals[k];
+      var s2=0,k; for(k=0;k<calVals.length;k++) s2+=calVals[k];
       base=s2/calVals.length;
       var m=0; for(k=0;k<calVals.length;k++) m+=Math.abs(calVals[k]-base);
       dev=Math.max(0.4,m/calVals.length);
-      var pk=0; for(k=0;k<calVals.length;k++) if(calVals[k]>pk) pk=calVals[k];
-      if(pk>base+dev) dev=Math.max(dev,(pk-base)/2);
+      var pkv=0; for(k=0;k<calVals.length;k++) if(calVals[k]>pkv) pkv=calVals[k];
+      if(pkv>base+dev) dev=Math.max(dev,(pkv-base)/2);
       var avg=new Float32Array(freq.length);
       for(i=0;i<freq.length;i++) avg[i]=calSpecSum[i]/Math.max(1,calN);
-      baseBand=bandOf(avg);
-      haveBase=true; calVals=[];
-      setStatus(template?"Đang nghe — máy chỉ đếm âm giống mẫu đã học.":"Đang nghe — nên bấm “Học tiếng giấy” để đếm chính xác hơn.","live");
-      $("btnLearnAdd").disabled=!template;
+      baseBand=bandOf(avg); haveBase=true; calVals=[];
+      var apx=activeProfile();
+      setStatus(apx?("Đang nghe — đếm theo mẫu “"+apx.name+"”."):"Đang nghe — nên học một mẫu để đếm chính xác.","live");
+      refreshUI();
     }
 
-    var taught=!!template;
-    var onsetK=taught?2.4:KSENS[level];
-    var onsetAbs=taught?2.5:ABSMIN[level];
+    var ap=activeProfile(), taught=!!ap;
+    var onsetK=taught?2.4:KSENS[level], onsetAbs=taught?2.5:ABSMIN[level];
     var thr=base+onsetK*(dev+0.3);
 
     if(!inEvt){
       if(haveBase && flux>thr && (flux-base)>=onsetAbs){
         inEvt=true; evtStart=now; evtPeak=flux; evtPeakBand=bandOf(freq); belowN=0;
       } else {
-        var a=0.03;
-        base=(1-a)*base+a*flux;
-        dev=(1-a)*dev+a*Math.abs(flux-base);
-        if(dev<0.4) dev=0.4;
+        var a=0.03; base=(1-a)*base+a*flux; dev=(1-a)*dev+a*Math.abs(flux-base); if(dev<0.4)dev=0.4;
       }
     } else {
       if(flux>evtPeak){ evtPeak=flux; evtPeakBand=bandOf(freq); }
       var sus=base+0.4*onsetK*(dev+0.3);
-      if(flux>sus){ belowN=0; }
-      else { belowN++; if(belowN>3) endEvent(now); }
+      if(flux>sus){ belowN=0; } else { belowN++; if(belowN>3) endEvent(now); }
       if(now-evtStart>1500) endEvent(now);
     }
 
@@ -394,35 +438,30 @@
   function endEvent(now){
     inEvt=false; belowN=0;
     var dur=now-evtStart;
-    if(dur<MIND) return;                         // quá ngắn -> gõ phím / va chạm
+    if(dur<MIND) return;
     var fp=fingerprint(evtPeakBand);
 
     if(learning){
       learnVecs.push(fp); learnCount++;
+      $("learnFill").style.width=Math.min(100,learnCount/LEARN_TARGET*100)+"%";
+      $("learnMsg").textContent="Đã lấy "+learnCount+"/"+LEARN_TARGET+" tờ… cứ kéo tiếp.";
       if(navigator.vibrate) navigator.vibrate(14);
-      setStatus("Đang học… đã lấy "+learnCount+"/"+LEARN_TARGET+" mẫu tiếng giấy","learn");
       if(learnCount>=LEARN_TARGET) finishLearn();
       return;
     }
 
-    if(now-lastCount<REFR) return;               // quá sát tờ trước
-
-    if(template){
-      var sim=dot(fp,template);
-      if(sim>=SIM[level]) doCount(now);
-      else missUntil=now+160;                    // có tiếng nhưng KHÔNG khớp mẫu -> bỏ
+    if(now-lastCount<REFR) return;
+    var ap=activeProfile();
+    if(ap){
+      if(dot(fp,ap.tpl)>=SIM[level]) doCount(now);
+      else missUntil=now+160;
     } else {
-      doCount(now);                              // chưa học: đã qua ngưỡng mạnh + đủ dài
+      doCount(now);
     }
   }
-  function doCount(now){
-    count++; lastCount=now; flashUntil=now+160;
-    render();
-    if(navigator.vibrate) navigator.vibrate(18);
-  }
+  function doCount(now){ count++; lastCount=now; flashUntil=now+160; render(); if(navigator.vibrate) navigator.vibrate(18); }
 
   function pushHist(f,t,mark){ hist.push({f:f,t:t,h:mark}); if(hist.length>HISTN) hist.shift(); }
-
   function draw(){
     var W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
     if(!hist.length) return;
@@ -435,11 +474,9 @@
       else if(hist[i].h===2){ g.fillStyle="rgba(188,140,255,.20)"; g.fillRect(i*sx-1,0,3,H); }
     }
     g.strokeStyle="#f85149"; g.lineWidth=1.5; g.beginPath();
-    for(i=0;i<hist.length;i++){ var yy=y(hist[i].t); if(i===0)g.moveTo(0,yy);else g.lineTo(i*sx,yy); }
-    g.stroke();
+    for(i=0;i<hist.length;i++){ var yy=y(hist[i].t); if(i===0)g.moveTo(0,yy);else g.lineTo(i*sx,yy);} g.stroke();
     g.strokeStyle="#58a6ff"; g.lineWidth=1.8; g.beginPath();
-    for(i=0;i<hist.length;i++){ var y2=y(hist[i].f); if(i===0)g.moveTo(0,y2);else g.lineTo(i*sx,y2); }
-    g.stroke();
+    for(i=0;i<hist.length;i++){ var y2=y(hist[i].f); if(i===0)g.moveTo(0,y2);else g.lineTo(i*sx,y2);} g.stroke();
   }
 
   function render(){
@@ -457,16 +494,29 @@
   // ---------- điều khiển ----------
   $("btnStart").addEventListener("click",function(){ running?stop():start(); });
   $("btnRecal").addEventListener("click",function(){ if(running) beginCal(); });
-  $("btnLearn").addEventListener("click",startLearn);
-  $("btnLearnAdd").addEventListener("click",startLearn);
-  $("btnLearnClear").addEventListener("click",function(){ clearTpl(); tplInfo(); setStatus(running?"Đã xoá mẫu. Máy quay lại đếm theo độ mạnh.":"Đã xoá mẫu đã học.", running?"prep":""); });
+  $("btnLearnNew").addEventListener("click",function(){ startLearn("new"); });
+  $("btnLearnAdd").addEventListener("click",function(){ startLearn("add"); });
+  $("btnLearnCancel").addEventListener("click",cancelLearn);
+  $("profSel").addEventListener("change",function(){ activeId=this.value||null; saveProfiles(); refreshUI(); });
+  $("btnRename").addEventListener("click",function(){
+    var ap=activeProfile(); if(!ap) return;
+    var nm=($("profName").value||"").trim();
+    if(!nm){ err("Gõ tên mới vào ô rồi bấm Đổi tên."); return; }
+    clearErr(); ap.name=nm; $("profName").value=""; saveProfiles(); refreshUI();
+  });
+  $("btnDelete").addEventListener("click",function(){
+    var ap=activeProfile(); if(!ap) return;
+    profiles=profiles.filter(function(p){return p.id!==ap.id;});
+    activeId=profiles.length?profiles[0].id:null; saveProfiles(); refreshUI();
+    setStatus("Đã xoá mẫu.", running?"prep":"");
+  });
   $("btnPlus").addEventListener("click",function(){ count++; render(); });
   $("btnMinus").addEventListener("click",function(){ if(count>0)count--; render(); });
   $("btnReset").addEventListener("click",function(){ count=0; render(); });
   $("btnTap").addEventListener("click",function(){ tap++; if(navigator.vibrate)navigator.vibrate(10); render(); });
   $("btnTapReset").addEventListener("click",function(){ tap=0; render(); });
 
-  loadTpl(); tplInfo(); render(); draw();
+  loadProfiles(); refreshUI(); render(); draw();
 })();
 </script>
 </body>
