@@ -9,7 +9,7 @@
   :root{
     --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --line:#2b3441;
     --tx:#e6edf3; --dim:#8b98a5; --acc:#3fb950; --acc2:#58a6ff;
-    --warn:#d29922; --bad:#f85149;
+    --warn:#d29922; --bad:#f85149; --learn:#bc8cff;
   }
   html,body{margin:0;padding:0}
   body{
@@ -19,24 +19,20 @@
     max-width:560px;margin:0 auto;
   }
   h1{font-size:17px;margin:4px 0 2px;font-weight:650}
-  .sub{font-size:12px;color:var(--dim);margin-bottom:12px;line-height:1.45}
+  .sub{font-size:12.5px;color:var(--dim);margin-bottom:12px;line-height:1.5}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px}
+  .card.learn{border-color:#4a3a6b;background:#191527}
   .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:0 0 11px;font-weight:600}
 
-  /* counter */
   .big{text-align:center;padding:6px 0 2px}
-  .num{font-size:78px;line-height:.95;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-3px}
+  .num{font-size:92px;line-height:.95;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-3px;transition:color .35s}
   .num.hit{color:var(--acc);transition:none}
-  .num{transition:color .35s}
   .lbl{font-size:11px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px}
-  .tgt{font-size:13px;color:var(--dim);margin-top:8px}
-  .tgt b{color:var(--tx)}
-  .bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:9px}
-  .bar>i{display:block;height:100%;width:0;background:var(--acc2);transition:width .18s}
-  .bar>i.done{background:var(--acc)}
-  .bar>i.over{background:var(--bad)}
+  .status{font-size:13.5px;margin-top:12px;padding:10px;border-radius:10px;background:var(--panel2);color:var(--dim);line-height:1.45;min-height:20px}
+  .status.live{color:var(--acc);background:#0f2b18}
+  .status.prep{color:var(--warn);background:#2c2410}
+  .status.learn{color:var(--learn);background:#241a38}
 
-  /* buttons */
   .row{display:flex;gap:8px}
   .row>*{flex:1}
   button{
@@ -47,48 +43,31 @@
   button:active{transform:scale(.97)}
   button.pri{background:var(--acc);border-color:var(--acc);color:#04240c}
   button.stop{background:var(--bad);border-color:var(--bad);color:#2a0605}
+  button.learnb{background:var(--learn);border-color:var(--learn);color:#1c0f33}
   button.ghost{background:transparent}
   button:disabled{opacity:.4;cursor:default}
   button.tap{padding:26px 8px;font-size:19px;background:#1f2b3d;border-color:#2f4a6b}
-  .mini{font-size:13px;padding:10px 6px}
+  .mini{font-size:13px;padding:11px 6px}
+  .big-start{padding:16px 8px;font-size:17px}
 
-  /* meter */
-  canvas{width:100%;height:104px;display:block;background:#0a0e14;border-radius:9px;border:1px solid var(--line)}
+  canvas{width:100%;height:88px;display:block;background:#0a0e14;border-radius:9px;border:1px solid var(--line)}
   .legend{display:flex;gap:14px;font-size:10.5px;color:var(--dim);margin-top:7px;flex-wrap:wrap}
   .legend i{display:inline-block;width:16px;height:2px;vertical-align:middle;margin-right:5px}
 
-  /* sliders */
-  .set{margin-bottom:14px}
-  .set:last-child{margin-bottom:0}
-  .set label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
-  .set label span:last-child{color:var(--acc2);font-variant-numeric:tabular-nums;font-weight:600}
-  .set .hint{font-size:11px;color:var(--dim);line-height:1.4;margin-top:4px}
-  input[type=range]{width:100%;accent-color:var(--acc2);height:26px}
-  input[type=text],input[type=number]{
-    width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--tx);
-    border-radius:9px;padding:11px;font-size:15px;font-family:inherit
-  }
-  select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--tx);
-    border-radius:9px;padding:11px;font-size:15px;font-family:inherit}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;font-size:13px;padding:11px 4px}
+  .seg button.on{background:var(--acc2);border-color:var(--acc2);color:#04121f}
 
-  /* compare */
+  .tpl{font-size:12.5px;padding:9px 11px;border-radius:9px;background:var(--panel2);margin-bottom:11px;line-height:1.45}
+  .tpl b{color:var(--learn)}
+  .tpl.none b{color:var(--warn)}
+
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center}
   .stat{background:var(--panel2);border-radius:10px;padding:12px 6px}
   .stat .v{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
   .stat .k{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
   .verdict{text-align:center;font-size:14px;margin-top:11px;padding:11px;border-radius:10px;background:var(--panel2);line-height:1.5}
 
-  /* log */
-  #log{font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-height:190px;overflow-y:auto;line-height:1.65}
-  #log div{padding:2px 0;border-bottom:1px solid #1d242e;display:flex;justify-content:space-between;gap:8px}
-  #log .ok{color:var(--acc)}
-  #log .rej{color:#6e7d8c}
-  #log .rej b{color:var(--warn);font-weight:600}
-
-  table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th,td{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}
-  th{color:var(--dim);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
-  td.n{text-align:right;font-variant-numeric:tabular-nums}
   .note{font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:10px}
   .err{background:#3d1418;border:1px solid var(--bad);color:#ffb3ae;padding:11px;border-radius:10px;font-size:13px;margin-bottom:11px;display:none;line-height:1.5}
   .pill{display:inline-block;font-size:10.5px;padding:3px 8px;border-radius:20px;background:var(--panel2);color:var(--dim);margin-left:6px;vertical-align:middle}
@@ -98,37 +77,61 @@
 <body>
 
 <h1>Đếm nhãn A5 bằng âm thanh <span class="pill" id="state">chưa chạy</span></h1>
-<div class="sub">Đặt điện thoại cách chỗ kéo giấy 20–40 cm. Bấm <b>Đo tiếng ồn nền</b> trước khi đếm, mỗi khi đổi phòng hoặc đổi loại giấy.</div>
+<div class="sub">Đặt điện thoại cách chỗ kéo giấy 20–40 cm. Bấm <b>Bắt đầu</b>, giữ yên 3 giây để máy nghe độ ồn phòng. Lần đầu, hãy <b>Học tiếng giấy</b> để máy chỉ đếm đúng tiếng kéo giấy.</div>
 
 <div class="err" id="err"></div>
 
 <div class="card">
   <div class="big">
     <div class="num" id="count">0</div>
-    <div class="lbl">tờ máy đếm được</div>
-    <div class="tgt" id="tgtline" style="display:none">Mục tiêu: <b id="tgtnum">0</b> · còn <b id="remain">0</b></div>
-    <div class="bar" id="barwrap" style="display:none"><i id="bar"></i></div>
+    <div class="lbl">tờ đã đếm</div>
+    <div class="status" id="status">Bấm “Bắt đầu” để mở máy nghe.</div>
   </div>
   <div class="row" style="margin-top:14px">
-    <button class="pri" id="btnStart">Bắt đầu</button>
-    <button class="ghost mini" id="btnNoise" disabled>Đo tiếng ồn nền</button>
+    <button class="pri big-start" id="btnStart">Bắt đầu</button>
   </div>
   <div class="row" style="margin-top:8px">
     <button class="ghost mini" id="btnMinus">− 1</button>
-    <button class="ghost mini" id="btnPlus">+ 1</button>
     <button class="ghost mini" id="btnReset">Về 0</button>
+    <button class="ghost mini" id="btnPlus">+ 1</button>
   </div>
+</div>
+
+<div class="card learn">
+  <h2>Dạy máy tiếng giấy</h2>
+  <div class="tpl none" id="tplInfo"><b>Chưa học mẫu nào.</b> Máy sẽ đếm theo độ mạnh — dễ nhầm. Nên dạy tiếng giấy một lần.</div>
+  <div class="row">
+    <button class="learnb" id="btnLearn" disabled>Học tiếng giấy (kéo 8 tờ)</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button class="ghost mini" id="btnLearnAdd" disabled>Học thêm mẫu</button>
+    <button class="ghost mini" id="btnLearnClear" disabled>Xoá mẫu đã học</button>
+  </div>
+  <div class="note">Máy ghi lại “vân âm thanh” của tiếng kéo giấy rồi chỉ đếm âm nào <b>giống vân đó</b> — tiếng nói chuyện, gõ phím, va chạm sẽ bị bỏ qua. Mẫu được lưu trong máy, không cần học lại mỗi lần.</div>
 </div>
 
 <div class="card">
   <h2>Tín hiệu trực tiếp</h2>
-  <canvas id="cv" width="900" height="208"></canvas>
+  <canvas id="cv" width="900" height="176"></canvas>
   <div class="legend">
-    <span><i style="background:#58a6ff"></i>độ biến động âm thanh</span>
-    <span><i style="background:#f85149"></i>ngưỡng đếm</span>
-    <span><i style="background:#3fb950"></i>đếm 1 tờ</span>
+    <span><i style="background:#58a6ff"></i>tiếng thu được</span>
+    <span><i style="background:#f85149"></i>vạch phát hiện</span>
+    <span><i style="background:#3fb950"></i>khớp mẫu → đếm</span>
+    <span><i style="background:#bc8cff"></i>không khớp → bỏ</span>
   </div>
-  <div class="note">Khi kéo giấy, vạch xanh phải vọt lên rõ trên vạch đỏ. Nếu tiếng nói chuyện hay gõ phím cũng vượt vạch đỏ, hãy tăng <b>Độ nhạy</b> (kéo sang phải nghĩa là khó kích hoạt hơn) hoặc tăng <b>Độ dài tối thiểu</b>.</div>
+</div>
+
+<div class="card">
+  <h2>Độ nhạy khớp mẫu</h2>
+  <div class="seg" id="seg">
+    <button data-lv="0">Nhạy hơn</button>
+    <button data-lv="1" class="on">Vừa</button>
+    <button data-lv="2">Chắc chắn hơn</button>
+  </div>
+  <div class="note" id="segHint">Vừa — cân bằng giữa bắt đủ tờ và tránh đếm nhầm.</div>
+  <div class="row" style="margin-top:11px">
+    <button class="ghost mini" id="btnRecal" disabled>Đo lại độ ồn phòng</button>
+  </div>
 </div>
 
 <div class="card">
@@ -142,406 +145,328 @@
   <div class="verdict" id="verdict">Chưa có dữ liệu đối chiếu.</div>
   <div class="row" style="margin-top:10px">
     <button class="ghost mini" id="btnTapReset">Xoá đếm tay</button>
-    <button class="ghost mini" id="btnSave">Lưu lô này</button>
-  </div>
-</div>
-
-<div class="card">
-  <h2>Thiết lập nhận diện</h2>
-
-  <div class="set">
-    <label><span>Độ nhạy (ngưỡng)</span><span id="vSens">3.0</span></label>
-    <input type="range" id="sens" min="1.2" max="9" step="0.1" value="3">
-    <div class="hint">Thấp = bắt được tiếng nhỏ nhưng dễ đếm dư. Cao = chỉ bắt tiếng rõ, dễ đếm thiếu.</div>
-  </div>
-
-  <div class="set">
-    <label><span>Độ dài tối thiểu</span><span id="vMin">75 ms</span></label>
-    <input type="range" id="mind" min="20" max="250" step="5" value="75">
-    <div class="hint">Đây là bộ lọc chống tiếng gõ phím. Tiếng gõ phím rất ngắn (20–45 ms), tiếng kéo giấy dài hơn (100–300 ms). Tăng thông số này nếu bị đếm dư khi có người gõ máy.</div>
-  </div>
-
-  <div class="set">
-    <label><span>Khoảng cách tối thiểu giữa 2 tờ</span><span id="vRef">200 ms</span></label>
-    <input type="range" id="refr" min="80" max="700" step="10" value="200">
-    <div class="hint">Chống đếm đôi một tờ. Nếu bạn kéo rất nhanh mà bị đếm thiếu, hãy giảm xuống.</div>
-  </div>
-
-  <div class="set">
-    <label><span>Dải tần nghe</span></label>
-    <select id="band">
-      <option value="2500,9000" selected>Chuẩn 2,5–9 kHz (tránh tiếng nói)</option>
-      <option value="4000,12000">Cao 4–12 kHz (phòng ồn nhiều tiếng nói)</option>
-      <option value="1500,8000">Rộng 1,5–8 kHz (giấy dày, tiếng trầm)</option>
-    </select>
-    <div class="hint">Tiếng nói tập trung dưới 3,5 kHz và tiếng quạt ở dải trầm, nên bỏ qua dải thấp giúp giảm đếm nhầm rất nhiều.</div>
-  </div>
-</div>
-
-<div class="card">
-  <h2>Nhật ký sự kiện</h2>
-  <div id="log"><div class="rej"><span>Chưa có sự kiện nào.</span><span></span></div></div>
-  <div class="note">Dòng xanh là đã đếm. Dòng xám là đã phát hiện nhưng bị loại — kèm lý do, giúp bạn biết nên chỉnh thông số nào.</div>
-</div>
-
-<div class="card">
-  <h2>Lô hàng</h2>
-  <div class="set"><label><span>Mã container / lô</span></label><input type="text" id="ctn" placeholder="VD: MSKU1234567"></div>
-  <div class="set"><label><span>Số nhãn cần đếm (để trống nếu không đặt mục tiêu)</span></label><input type="number" id="tgt" placeholder="VD: 250" inputmode="numeric"></div>
-  <table id="tbl" style="display:none">
-    <thead><tr><th>Lô</th><th class="n">Máy</th><th class="n">Tay</th><th class="n">Lệch</th></tr></thead>
-    <tbody id="tbody"></tbody>
-  </table>
-  <div class="row" style="margin-top:11px">
-    <button class="ghost mini" id="btnCsv">Xuất CSV</button>
-    <button class="ghost mini" id="btnClear">Xoá danh sách</button>
   </div>
 </div>
 
 <div class="note" style="text-align:center;padding:0 6px 10px">
-  Bản thử nghiệm để đo độ chính xác. Trước khi dùng cho số liệu thật, hãy chạy đối chiếu ít nhất 5 chồng.
+  Bản thử nghiệm. Trước khi tin số liệu, hãy chạy đối chiếu ít nhất 5 chồng.
 </div>
 
 <script>
 (function(){
   "use strict";
 
+  // ---------- cấu hình cố định ----------
+  var LO=2000, HI=11000;     // dải tần đưa vào vân (bỏ tiếng nói trầm)
+  var MIND=60;               // độ dài tối thiểu (ms) — lọc tiếng gõ phím
+  var REFR=170;              // khoảng cách tối thiểu giữa 2 tờ (ms)
+  var CAL_MS=2500;           // tự đo nền khi bắt đầu
+  var NB=32;                 // số dải để tạo "vân âm thanh"
+  var LEARN_TARGET=8;
+  // độ giống tối thiểu để tính là tiếng giấy, theo mức [Nhạy, Vừa, Chắc chắn]
+  var SIM=[0.78, 0.86, 0.92];
+  // khi CHƯA học mẫu: dùng độ mạnh làm ngưỡng
+  var KSENS=[3.4,5.0,7.2], ABSMIN=[3.5,5.5,8.5];
+  var level=1;
+
   // ---------- state ----------
   var ctx=null, analyser=null, stream=null, raf=null, wake=null;
   var running=false;
   var freq=null, prev=null;
   var base=0, dev=1, haveBase=false;
-  var inEvt=false, evtStart=0, evtPeak=0, evtCounted=false, belowN=0;
+  var calUntil=0, calVals=[], calSpecSum=null, calN=0, baseBand=null;
+  var inEvt=false, evtStart=0, evtPeak=0, evtPeakBand=null, belowN=0;
   var lastCount=-1e9;
   var count=0, tap=0;
   var hist=[], HISTN=260;
-  var flashUntil=0;
-  var batches=[];
-  var binHz=1, lo=0, hi=0;
+  var flashUntil=0, missUntil=0;
+  var binHz=1, lo=0, hi=0, loB=0, hiB=0;
+  var template=null;               // Float32Array(NB), đã chuẩn hoá
+  var learning=false, learnVecs=[], learnCount=0;
 
   // ---------- dom ----------
   function $(id){return document.getElementById(id);}
-  var elCount=$("count"), elErr=$("err"), elState=$("state"), elLog=$("log");
+  var elCount=$("count"), elErr=$("err"), elState=$("state"), elStatus=$("status");
   var cv=$("cv"), g=cv.getContext("2d");
-
   function err(m){ elErr.textContent=m; elErr.style.display="block"; }
   function clearErr(){ elErr.style.display="none"; }
+  function setStatus(txt,cls){ elStatus.textContent=txt; elStatus.className="status"+(cls?" "+cls:""); }
 
-  // ---------- settings ----------
-  var S={sens:3, mind:75, refr:200, lo:2500, hi:9000};
-  function bindRange(id,key,fmt,out){
-    var el=$(id);
-    el.addEventListener("input",function(){
-      S[key]=parseFloat(el.value);
-      $(out).textContent=fmt(S[key]);
-    });
-    $(out).textContent=fmt(S[key]);
+  // ---------- lưu / nạp mẫu ----------
+  function saveTpl(){ try{ localStorage.setItem("a5_tpl", JSON.stringify(Array.prototype.slice.call(template))); }catch(e){} }
+  function loadTpl(){
+    try{
+      var s=localStorage.getItem("a5_tpl");
+      if(s){ var a=JSON.parse(s); if(a&&a.length===NB){ template=new Float32Array(a); } }
+    }catch(e){}
   }
-  bindRange("sens","sens",function(v){return v.toFixed(1);},"vSens");
-  bindRange("mind","mind",function(v){return v+" ms";},"vMin");
-  bindRange("refr","refr",function(v){return v+" ms";},"vRef");
-  $("band").addEventListener("change",function(){
-    var p=this.value.split(",");
-    S.lo=+p[0]; S.hi=+p[1];
-    recalcBins();
-    haveBase=false; base=0; dev=1;
-  });
+  function clearTpl(){ template=null; try{localStorage.removeItem("a5_tpl");}catch(e){} }
+
+  function tplInfo(){
+    var el=$("tplInfo");
+    if(template){ el.className="tpl"; el.innerHTML="<b>Đã học tiếng giấy.</b> Máy chỉ đếm âm giống mẫu đã học."; }
+    else { el.className="tpl none"; el.innerHTML="<b>Chưa học mẫu nào.</b> Máy sẽ đếm theo độ mạnh — dễ nhầm. Nên dạy tiếng giấy một lần."; }
+    $("btnLearnClear").disabled = !template || !running && false; // luôn cho xoá nếu có mẫu
+    $("btnLearnClear").disabled = !template;
+    $("btnLearnAdd").disabled = !template || !running;
+  }
 
   function recalcBins(){
     if(!ctx) return;
     binHz = ctx.sampleRate / analyser.fftSize;
-    lo = Math.max(1, Math.floor(S.lo/binHz));
-    hi = Math.min(analyser.frequencyBinCount-1, Math.ceil(S.hi/binHz));
+    lo = Math.max(1, Math.floor(LO/binHz));
+    hi = Math.min(analyser.frequencyBinCount-1, Math.ceil(HI/binHz));
     if(hi<=lo) hi=lo+1;
+    loB=lo; hiB=hi;
   }
 
-  // ---------- audio ----------
+  // ---------- vân âm thanh: gộp phổ trong [lo..hi] thành NB dải ----------
+  function bandOf(arr){
+    var v=new Float32Array(NB);
+    var span=hiB-loB+1, per=span/NB;
+    for(var b=0;b<NB;b++){
+      var a0=loB+Math.floor(b*per), a1=loB+Math.floor((b+1)*per), s=0,c=0;
+      if(a1<=a0) a1=a0+1;
+      for(var j=a0;j<a1;j++){ s+=arr[j]; c++; }
+      v[b]=c?s/c:0;
+    }
+    return v;
+  }
+  // vân của MỘT sự kiện = (phổ đỉnh − phổ nền) đã chuẩn hoá về vector đơn vị
+  function fingerprint(peakBand){
+    var f=new Float32Array(NB), s=0;
+    for(var b=0;b<NB;b++){ var d=peakBand[b]-(baseBand?baseBand[b]:0); if(d<0)d=0; f[b]=d; s+=d*d; }
+    s=Math.sqrt(s)||1;
+    for(b=0;b<NB;b++) f[b]/=s;
+    return f;
+  }
+  function dot(a,b){ var s=0; for(var i=0;i<NB;i++) s+=a[i]*b[i]; return s; }
+
+  // ---------- độ nhạy ----------
+  var HINTS=[
+    "Nhạy hơn — chấp nhận âm hơi khác mẫu, bắt được nhiều hơn nhưng dễ đếm dư.",
+    "Vừa — cân bằng giữa bắt đủ tờ và tránh đếm nhầm.",
+    "Chắc chắn hơn — chỉ đếm âm rất giống mẫu, gần như không nhầm, có thể sót vài tờ."
+  ];
+  Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(b){
+    b.addEventListener("click",function(){
+      level=+b.getAttribute("data-lv");
+      Array.prototype.forEach.call(document.querySelectorAll("#seg button"),function(x){x.classList.remove("on");});
+      b.classList.add("on");
+      $("segHint").textContent=HINTS[level];
+    });
+  });
+
+  // ---------- bắt đầu / dừng ----------
   function start(){
     clearErr();
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       err("Trình duyệt không hỗ trợ thu âm. Hãy mở trang bằng Chrome hoặc Safari trên điện thoại."); return;
     }
+    setStatus("Đang xin quyền micro…","prep");
     navigator.mediaDevices.getUserMedia({audio:{
-      // TẮT các bộ xử lý của điện thoại — chúng sẽ bóp mất tiếng giấy
-      echoCancellation:false, noiseSuppression:false, autoGainControl:false,
-      channelCount:1
+      echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1
     }}).then(function(st){
       stream=st;
-      var AC = window.AudioContext || window.webkitAudioContext;
-      ctx = new AC();
+      var AC=window.AudioContext||window.webkitAudioContext;
+      ctx=new AC();
       if(ctx.state==="suspended") ctx.resume();
-      analyser = ctx.createAnalyser();
-      analyser.fftSize = 1024;
-      analyser.smoothingTimeConstant = 0;
+      analyser=ctx.createAnalyser();
+      analyser.fftSize=1024; analyser.smoothingTimeConstant=0;
       ctx.createMediaStreamSource(st).connect(analyser);
-      freq = new Uint8Array(analyser.frequencyBinCount);
-      prev = new Uint8Array(analyser.frequencyBinCount);
+      freq=new Uint8Array(analyser.frequencyBinCount);
+      prev=new Uint8Array(analyser.frequencyBinCount);
       recalcBins();
       running=true;
-      base=0; dev=1; haveBase=false;
-      $("btnStart").textContent="Dừng";
-      $("btnStart").className="stop";
-      $("btnNoise").disabled=false;
+      $("btnStart").textContent="Dừng"; $("btnStart").className="stop big-start";
+      $("btnRecal").disabled=false; $("btnLearn").disabled=false;
       elState.textContent="đang nghe"; elState.className="pill live";
-      keepAwake();
-      loop();
+      keepAwake(); beginCal(); tplInfo(); loop();
     }).catch(function(e){
+      setStatus("Bấm “Bắt đầu” để mở máy nghe.","");
       err("Không truy cập được micro ("+(e&&e.name?e.name:"lỗi")+"). Kiểm tra: trang phải chạy qua HTTPS, và bạn phải cho phép quyền micro cho trang này.");
     });
   }
-
   function stop(){
-    running=false;
+    running=false; learning=false;
     if(raf) cancelAnimationFrame(raf);
     if(stream) stream.getTracks().forEach(function(t){t.stop();});
     if(ctx) ctx.close();
-    ctx=null; stream=null;
-    $("btnStart").textContent="Bắt đầu";
-    $("btnStart").className="pri";
-    $("btnNoise").disabled=true;
+    ctx=null; stream=null; haveBase=false; inEvt=false;
+    $("btnStart").textContent="Bắt đầu"; $("btnStart").className="pri big-start";
+    $("btnRecal").disabled=true; $("btnLearn").disabled=true; $("btnLearnAdd").disabled=true;
     elState.textContent="đã dừng"; elState.className="pill";
+    setStatus("Đã dừng. Bấm “Bắt đầu” để nghe tiếp.","");
     if(wake){ try{wake.release();}catch(e){} wake=null; }
   }
-
+  function beginCal(){
+    haveBase=false; base=0; dev=1; calVals=[]; inEvt=false;
+    calSpecSum=new Float32Array(analyser.frequencyBinCount); calN=0;
+    calUntil=performance.now()+CAL_MS;
+    setStatus("Đang nghe độ ồn phòng — GIỮ YÊN, đừng kéo giấy…","prep");
+  }
   function keepAwake(){
-    if("wakeLock" in navigator){
-      navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){});
-    }
+    if("wakeLock" in navigator) navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){});
   }
   document.addEventListener("visibilitychange",function(){
     if(document.visibilityState==="visible" && running && !wake) keepAwake();
   });
 
-  // ---------- noise calibration ----------
-  var calUntil=0, calVals=[];
-  $("btnNoise").addEventListener("click",function(){
-    if(!running) return;
-    calVals=[]; calUntil=performance.now()+3000;
-    elState.textContent="đang đo nền…";
-    this.disabled=true;
-  });
+  // ---------- học tiếng giấy ----------
+  function startLearn(){
+    if(!running || !haveBase) return;
+    learning=true; learnVecs=[]; learnCount=0;
+    setStatus("Học tiếng giấy: kéo TỪ TỪ từng tờ (cần "+LEARN_TARGET+" tờ)…","learn");
+  }
+  function finishLearn(){
+    var t=new Float32Array(NB), i, b, s=0;
+    for(i=0;i<learnVecs.length;i++) for(b=0;b<NB;b++) t[b]+=learnVecs[i][b];
+    for(b=0;b<NB;b++){ t[b]/=learnVecs.length; s+=t[b]*t[b]; }
+    s=Math.sqrt(s)||1; for(b=0;b<NB;b++) t[b]/=s;
+    template=t; saveTpl(); learning=false;
+    tplInfo();
+    setStatus("Đã học xong tiếng giấy ("+learnCount+" mẫu). Giờ máy chỉ đếm âm giống mẫu.","live");
+    if(navigator.vibrate) navigator.vibrate([40,40,40]);
+  }
 
-  // ---------- detection loop ----------
+  // ---------- vòng lặp ----------
   function loop(){
     if(!running) return;
     raf=requestAnimationFrame(loop);
     var now=performance.now();
-
     analyser.getByteFrequencyData(freq);
 
-    // spectral flux: chỉ cộng phần TĂNG, trong dải tần đã chọn
-    var flux=0, n=0;
-    for(var i=lo;i<=hi;i++){
-      var d=freq[i]-prev[i];
-      if(d>0) flux+=d;
-      n++;
-    }
-    flux = n ? flux/n : 0;
+    var flux=0,n=0;
+    for(var i=lo;i<=hi;i++){ var d=freq[i]-prev[i]; if(d>0) flux+=d; n++; }
+    flux=n?flux/n:0;
     prev.set(freq);
 
-    // hiệu chuẩn nền
-    if(now < calUntil){
+    // tự đo nền
+    if(now<calUntil){
       calVals.push(flux);
-      pushHist(flux, 0, false);
-      draw();
-      return;
+      for(i=0;i<freq.length;i++) calSpecSum[i]+=freq[i];
+      calN++;
+      var left=Math.ceil((calUntil-now)/1000);
+      setStatus("Đang nghe độ ồn phòng — GIỮ YÊN… "+left,"prep");
+      pushHist(flux,0,0); draw(); return;
     } else if(calVals.length){
-      var s=0,i2;
-      for(i2=0;i2<calVals.length;i2++) s+=calVals[i2];
-      base = s/calVals.length;
-      var m=0;
-      for(i2=0;i2<calVals.length;i2++) m+=Math.abs(calVals[i2]-base);
-      dev = Math.max(0.35, m/calVals.length);
+      var s2=0,k;
+      for(k=0;k<calVals.length;k++) s2+=calVals[k];
+      base=s2/calVals.length;
+      var m=0; for(k=0;k<calVals.length;k++) m+=Math.abs(calVals[k]-base);
+      dev=Math.max(0.4,m/calVals.length);
+      var pk=0; for(k=0;k<calVals.length;k++) if(calVals[k]>pk) pk=calVals[k];
+      if(pk>base+dev) dev=Math.max(dev,(pk-base)/2);
+      var avg=new Float32Array(freq.length);
+      for(i=0;i<freq.length;i++) avg[i]=calSpecSum[i]/Math.max(1,calN);
+      baseBand=bandOf(avg);
       haveBase=true; calVals=[];
-      elState.textContent="đang nghe"; elState.className="pill live";
-      $("btnNoise").disabled=false;
-      logLine("Đã đo nền: mức "+base.toFixed(2)+" · dao động "+dev.toFixed(2), false, "");
+      setStatus(template?"Đang nghe — máy chỉ đếm âm giống mẫu đã học.":"Đang nghe — nên bấm “Học tiếng giấy” để đếm chính xác hơn.","live");
+      $("btnLearnAdd").disabled=!template;
     }
 
-    var thr = base + S.sens*(dev+0.25);
-    var sus = base + 0.45*S.sens*(dev+0.25);
+    var taught=!!template;
+    var onsetK=taught?2.4:KSENS[level];
+    var onsetAbs=taught?2.5:ABSMIN[level];
+    var thr=base+onsetK*(dev+0.3);
 
     if(!inEvt){
-      if(haveBase && flux>thr){
-        inEvt=true; evtStart=now; evtPeak=flux; evtCounted=false; belowN=0;
+      if(haveBase && flux>thr && (flux-base)>=onsetAbs){
+        inEvt=true; evtStart=now; evtPeak=flux; evtPeakBand=bandOf(freq); belowN=0;
       } else {
-        // cập nhật nền chậm, chỉ khi yên tĩnh
-        var a=0.02;
-        base = (1-a)*base + a*flux;
-        dev  = (1-a)*dev  + a*Math.abs(flux-base);
-        if(dev<0.35) dev=0.35;
-        if(!haveBase && now>3000) haveBase=true;
+        var a=0.03;
+        base=(1-a)*base+a*flux;
+        dev=(1-a)*dev+a*Math.abs(flux-base);
+        if(dev<0.4) dev=0.4;
       }
     } else {
-      if(flux>evtPeak) evtPeak=flux;
-      if(flux>sus){
-        belowN=0;
-        var dur=now-evtStart;
-        if(!evtCounted && dur>=S.mind){
-          if(now-lastCount>=S.refr){
-            count++; lastCount=now; evtCounted=true;
-            flashUntil=now+160;
-            render();
-            if(navigator.vibrate) navigator.vibrate(18);
-            logLine(Math.round(dur)+" ms · đỉnh "+evtPeak.toFixed(1), true, "");
-          } else {
-            evtCounted=true; // đánh dấu đã xử lý, bị chặn bởi khoảng cách
-            logLine(Math.round(dur)+" ms", false, "quá sát tờ trước");
-          }
-        }
-      } else {
-        belowN++;
-        if(belowN>3){
-          var d2=now-evtStart;
-          if(!evtCounted){
-            logLine(Math.round(d2)+" ms · đỉnh "+evtPeak.toFixed(1), false, "quá ngắn");
-          }
-          inEvt=false; belowN=0;
-        }
-      }
-      // sự kiện quá dài (tiếng ồn kéo dài) -> kết thúc cưỡng bức
-      if(now-evtStart>1200){ inEvt=false; belowN=0; }
+      if(flux>evtPeak){ evtPeak=flux; evtPeakBand=bandOf(freq); }
+      var sus=base+0.4*onsetK*(dev+0.3);
+      if(flux>sus){ belowN=0; }
+      else { belowN++; if(belowN>3) endEvent(now); }
+      if(now-evtStart>1500) endEvent(now);
     }
 
-    pushHist(flux, thr, now<flashUntil);
+    pushHist(flux, thr, now<flashUntil?1:(now<missUntil?2:0));
     draw();
   }
 
-  function pushHist(f,t,hit){
-    hist.push({f:f,t:t,h:hit});
-    if(hist.length>HISTN) hist.shift();
+  function endEvent(now){
+    inEvt=false; belowN=0;
+    var dur=now-evtStart;
+    if(dur<MIND) return;                         // quá ngắn -> gõ phím / va chạm
+    var fp=fingerprint(evtPeakBand);
+
+    if(learning){
+      learnVecs.push(fp); learnCount++;
+      if(navigator.vibrate) navigator.vibrate(14);
+      setStatus("Đang học… đã lấy "+learnCount+"/"+LEARN_TARGET+" mẫu tiếng giấy","learn");
+      if(learnCount>=LEARN_TARGET) finishLearn();
+      return;
+    }
+
+    if(now-lastCount<REFR) return;               // quá sát tờ trước
+
+    if(template){
+      var sim=dot(fp,template);
+      if(sim>=SIM[level]) doCount(now);
+      else missUntil=now+160;                    // có tiếng nhưng KHÔNG khớp mẫu -> bỏ
+    } else {
+      doCount(now);                              // chưa học: đã qua ngưỡng mạnh + đủ dài
+    }
+  }
+  function doCount(now){
+    count++; lastCount=now; flashUntil=now+160;
+    render();
+    if(navigator.vibrate) navigator.vibrate(18);
   }
 
-  // ---------- drawing ----------
+  function pushHist(f,t,mark){ hist.push({f:f,t:t,h:mark}); if(hist.length>HISTN) hist.shift(); }
+
   function draw(){
-    var W=cv.width, H=cv.height;
-    g.clearRect(0,0,W,H);
+    var W=cv.width,H=cv.height; g.clearRect(0,0,W,H);
     if(!hist.length) return;
     var max=1;
-    for(var i=0;i<hist.length;i++){
-      if(hist[i].f>max) max=hist[i].f;
-      if(hist[i].t>max) max=hist[i].t;
-    }
-    max*=1.15;
-    var sx=W/HISTN;
-    function y(v){ return H - (v/max)*(H-6) - 3; }
-
-    // hit markers
+    for(var i=0;i<hist.length;i++){ if(hist[i].f>max)max=hist[i].f; if(hist[i].t>max)max=hist[i].t; }
+    max*=1.15; var sx=W/HISTN;
+    function y(v){ return H-(v/max)*(H-6)-3; }
     for(i=0;i<hist.length;i++){
-      if(hist[i].h){
-        g.fillStyle="rgba(63,185,80,.22)";
-        g.fillRect(i*sx-1,0,3,H);
-      }
+      if(hist[i].h===1){ g.fillStyle="rgba(63,185,80,.22)"; g.fillRect(i*sx-1,0,3,H); }
+      else if(hist[i].h===2){ g.fillStyle="rgba(188,140,255,.20)"; g.fillRect(i*sx-1,0,3,H); }
     }
-    // threshold
     g.strokeStyle="#f85149"; g.lineWidth=1.5; g.beginPath();
-    for(i=0;i<hist.length;i++){
-      var yy=y(hist[i].t);
-      if(i===0) g.moveTo(0,yy); else g.lineTo(i*sx,yy);
-    }
+    for(i=0;i<hist.length;i++){ var yy=y(hist[i].t); if(i===0)g.moveTo(0,yy);else g.lineTo(i*sx,yy); }
     g.stroke();
-    // flux
     g.strokeStyle="#58a6ff"; g.lineWidth=1.8; g.beginPath();
-    for(i=0;i<hist.length;i++){
-      var y2=y(hist[i].f);
-      if(i===0) g.moveTo(0,y2); else g.lineTo(i*sx,y2);
-    }
+    for(i=0;i<hist.length;i++){ var y2=y(hist[i].f); if(i===0)g.moveTo(0,y2);else g.lineTo(i*sx,y2); }
     g.stroke();
   }
 
-  // ---------- log ----------
-  var logN=0;
-  function logLine(txt, ok, reason){
-    logN++;
-    if(logN===1) elLog.innerHTML="";
-    var d=document.createElement("div");
-    d.className = ok?"ok":"rej";
-    var left=document.createElement("span");
-    left.textContent=(ok?"✓ đếm · ":"○ bỏ · ")+txt;
-    var right=document.createElement("span");
-    if(reason){ right.innerHTML="<b>"+reason+"</b>"; }
-    d.appendChild(left); d.appendChild(right);
-    elLog.insertBefore(d, elLog.firstChild);
-    while(elLog.children.length>60) elLog.removeChild(elLog.lastChild);
-  }
-
-  // ---------- render counters ----------
   function render(){
     elCount.textContent=count;
-    elCount.className = (performance.now()<flashUntil) ? "num hit":"num";
-    $("s1").textContent=count;
-    $("s2").textContent=tap;
-    $("tapn").textContent=tap;
-
-    var t=parseInt($("tgt").value,10);
-    if(t>0){
-      $("tgtline").style.display="block";
-      $("barwrap").style.display="block";
-      $("tgtnum").textContent=t;
-      $("remain").textContent=Math.max(0,t-count);
-      var b=$("bar");
-      b.style.width=Math.min(100,(count/t)*100)+"%";
-      b.className = count>t ? "over" : (count===t?"done":"");
-      if(count===t && !window.__hit){ window.__hit=true; if(navigator.vibrate) navigator.vibrate([60,50,60]); }
-      if(count!==t) window.__hit=false;
-    } else {
-      $("tgtline").style.display="none";
-      $("barwrap").style.display="none";
-    }
-
+    elCount.className=(performance.now()<flashUntil)?"num hit":"num";
+    $("s1").textContent=count; $("s2").textContent=tap; $("tapn").textContent=tap;
     var v=$("verdict");
     if(tap===0){ v.textContent="Chưa có dữ liệu đối chiếu."; v.style.color=""; return; }
-    var diff=count-tap;
-    var pct=(100*(1-Math.abs(diff)/tap));
-    var word = diff===0 ? "khớp hoàn toàn" : (diff>0? "máy đếm DƯ "+diff+" tờ" : "máy đếm THIẾU "+(-diff)+" tờ");
-    v.innerHTML = "<b>"+word+"</b><br>độ chính xác "+pct.toFixed(1)+"% trên "+tap+" tờ";
-    v.style.color = Math.abs(diff)===0 ? "var(--acc)" : (Math.abs(diff)<=tap*0.02 ? "var(--warn)":"var(--bad)");
+    var diff=count-tap, pct=100*(1-Math.abs(diff)/tap);
+    var word=diff===0?"khớp hoàn toàn":(diff>0?"máy đếm DƯ "+diff+" tờ":"máy đếm THIẾU "+(-diff)+" tờ");
+    v.innerHTML="<b>"+word+"</b><br>độ chính xác "+pct.toFixed(1)+"% trên "+tap+" tờ";
+    v.style.color=Math.abs(diff)===0?"var(--acc)":(Math.abs(diff)<=tap*0.02?"var(--warn)":"var(--bad)");
   }
 
-  // ---------- controls ----------
+  // ---------- điều khiển ----------
   $("btnStart").addEventListener("click",function(){ running?stop():start(); });
+  $("btnRecal").addEventListener("click",function(){ if(running) beginCal(); });
+  $("btnLearn").addEventListener("click",startLearn);
+  $("btnLearnAdd").addEventListener("click",startLearn);
+  $("btnLearnClear").addEventListener("click",function(){ clearTpl(); tplInfo(); setStatus(running?"Đã xoá mẫu. Máy quay lại đếm theo độ mạnh.":"Đã xoá mẫu đã học.", running?"prep":""); });
   $("btnPlus").addEventListener("click",function(){ count++; render(); });
   $("btnMinus").addEventListener("click",function(){ if(count>0)count--; render(); });
   $("btnReset").addEventListener("click",function(){ count=0; render(); });
   $("btnTap").addEventListener("click",function(){ tap++; if(navigator.vibrate)navigator.vibrate(10); render(); });
   $("btnTapReset").addEventListener("click",function(){ tap=0; render(); });
-  $("tgt").addEventListener("input",render);
 
-  $("btnSave").addEventListener("click",function(){
-    var name=$("ctn").value.trim() || ("Lô "+(batches.length+1));
-    batches.push({name:name, m:count, t:tap});
-    drawTable();
-    count=0; tap=0; render();
-    $("ctn").value="";
-  });
-
-  function drawTable(){
-    var tb=$("tbody"); tb.innerHTML="";
-    $("tbl").style.display = batches.length? "table":"none";
-    batches.forEach(function(b){
-      var tr=document.createElement("tr");
-      var d=b.t? (b.m-b.t):0;
-      tr.innerHTML="<td>"+esc(b.name)+"</td><td class='n'>"+b.m+"</td><td class='n'>"+(b.t||"—")+"</td>"+
-                   "<td class='n' style='color:"+(d===0?"var(--acc)":"var(--bad)")+"'>"+(b.t? (d>0?"+"+d:d) : "—")+"</td>";
-      tb.appendChild(tr);
-    });
-  }
-  function esc(s){ return String(s).replace(/[<>&]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;"}[c];}); }
-
-  $("btnClear").addEventListener("click",function(){ batches=[]; drawTable(); });
-  $("btnCsv").addEventListener("click",function(){
-    if(!batches.length){ err("Chưa có lô nào để xuất."); return; }
-    clearErr();
-    var rows=[["Lo","May dem","Dem tay","Lech"]];
-    batches.forEach(function(b){ rows.push([b.name,b.m,b.t||"",b.t?(b.m-b.t):""]); });
-    var csv="﻿"+rows.map(function(r){return r.join(",");}).join("\n");
-    var a=document.createElement("a");
-    a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
-    a.download="dem-nhan.csv"; a.click();
-  });
-
-  render();
-  draw();
+  loadTpl(); tplInfo(); render(); draw();
 })();
 </script>
 </body>
