@@ -116,9 +116,12 @@
 
 <div class="card check">
   <h2>Bước 1 · Kiểm tra & dạy tiếng ồn</h2>
-  <div class="note" style="margin-top:0">Bấm nút rồi <b>ngồi yên 30 giây, KHÔNG đụng vào giấy</b>. Máy đếm xem có bao nhiêu lần nó định đếm nhầm, đồng thời ghi nhớ tất cả tiếng đó là “không phải giấy”. Làm lại tới khi báo <b>0 lần</b>.</div>
+  <div class="note" style="margin-top:0">Bấm nút rồi <b>KHÔNG đụng vào giấy</b>. Máy đếm xem có bao nhiêu lần nó định đếm nhầm, đồng thời ghi nhớ tất cả tiếng đó là “không phải giấy”. Làm lại tới khi báo <b>0 lần</b>.</div>
+  <label style="font-size:12.5px;color:var(--dim);display:block;margin-top:11px">Nghe trong bao nhiêu giây</label>
+  <input type="number" id="noiseSec" value="20" min="5" max="180" step="5" inputmode="numeric" style="margin:5px 0 9px">
+  <div class="note" style="margin-top:0">Ngắn 10–20 giây cho đỡ mất việc; dài 60 giây trở lên thì bắt được nhiều loại tiếng hơn. Đang chạy vẫn bấm <b>Dừng sớm</b> được, phần đã nghe vẫn được ghi nhớ.</div>
   <div class="row" style="margin-top:11px">
-    <button class="noiseb" id="btnNoise" disabled>Kiểm tra & dạy tiếng ồn (30 giây)</button>
+    <button class="noiseb" id="btnNoise" disabled>Bắt đầu kiểm tra &amp; dạy tiếng ồn</button>
   </div>
   <div id="noiseBox" class="hidden">
     <div class="learnbar"><i id="noiseFill" class="ng"></i></div>
@@ -196,9 +199,15 @@
 
 <div class="card">
   <h2>Chia sẻ thư viện cho cả team</h2>
-  <div class="note" style="margin-top:0">Một người dạy thật kỹ rồi gửi mã cho cả team qua Zalo. Mã gồm cả tiếng giấy lẫn tiếng ồn.</div>
-  <div style="margin-top:12px;font-size:12.5px;color:var(--dim)">Mã thư viện của bạn</div>
-  <textarea id="codeOut" readonly placeholder="Chưa có thư viện để chia sẻ"></textarea>
+  <div class="note" style="margin-top:0">Một người dạy thật kỹ rồi gửi mã cho cả team qua Zalo. Cả team ngồi chung phòng nên <b>tiếng ồn dùng chung được</b> — người này chạy Bước 1, cả team đỡ phải ngồi im.</div>
+
+  <div style="margin-top:12px;font-size:12.5px;color:var(--dim)">Chép phần nào</div>
+  <div class="seg" id="segWhat" style="margin-top:5px">
+    <button data-w="0" class="on">Cả hai</button>
+    <button data-w="1">Chỉ tiếng giấy</button>
+    <button data-w="2">Chỉ tiếng ồn</button>
+  </div>
+  <textarea id="codeOut" readonly placeholder="Chưa có gì để chia sẻ" style="margin-top:8px"></textarea>
   <div class="row">
     <button class="ghost mini" id="btnCopy" disabled>Sao chép mã</button>
     <button class="ghost mini" id="btnShare" disabled>Gửi qua Zalo…</button>
@@ -241,7 +250,7 @@
   var CAL_MS=2500, NB=32;
   var BACK_MS=1800, FWD_MS=2500;
   var LIB_MAX=200, NEG_MAX=150;
-  var NOISE_MS=30000;
+  var noiseMs=20000;                 // người dùng tự chọn
   var KSENS=[3.6,5.0,6.8], ABSMIN=[4,6,9];
   var SIMADJ=[-0.02,0,0.025];
   var STRLO=[0.40,0.50,0.62], STRHI=[4.5,3.2,2.4];
@@ -288,24 +297,25 @@
 
   function refreshUI(){
     var el=$("tplInfo");
-    if(mem){
+    if(mem&&mem.lib.length){
       el.className="tpl";
       el.innerHTML="<b>"+mem.lib.length+" vân tiếng giấy</b> · <span class='ng'>"+(mem.neg?mem.neg.length:0)+" mẫu tiếng ồn</span><br>"+
         "tiếng giấy của bạn: dài "+Math.round(mem.dLo)+"–"+Math.round(mem.dHi)+" ms, mạnh khoảng "+mem.str.toFixed(1);
     } else {
       el.className="tpl none";
-      el.innerHTML="<b>Chưa học tiếng giấy — máy sẽ KHÔNG đếm.</b>";
+      el.innerHTML="<b>Chưa học tiếng giấy — máy sẽ KHÔNG đếm.</b>"+
+        (mem&&mem.neg&&mem.neg.length? " (đã có <span class='ng'>"+mem.neg.length+" mẫu tiếng ồn</span>)":"");
     }
     var idle = running && haveBase && !learning && !noiseMode;
     $("btnLearnNew").disabled=!idle;
     $("btnLearnNew").textContent = mem ? "Học lại tiếng giấy từ đầu" : "Học tiếng giấy";
-    $("btnLearnAdd").disabled=!(idle && mem);
+    $("btnLearnAdd").disabled=!(idle && mem && mem.lib.length);
     $("btnNoise").disabled=!idle;
     $("btnDelete").disabled=!(mem && !learning && !noiseMode);
     $("learnIdle").className=(learning)?"hidden":"";
     $("learnBox").className=learning?"":"hidden";
     $("noiseBox").className=noiseMode?"":"hidden";
-    elCount.className = mem?"num":"num off";
+    elCount.className = (mem&&mem.lib.length)?"num":"num off";
 
     var code=exportCode();
     $("codeOut").value=code;
@@ -404,9 +414,13 @@
     for(var i=0;i<max;i++) o.push(arr[Math.floor(i*st)]);
     return o;
   }
+  // what: 0 = cả hai, 1 = chỉ tiếng giấy, 2 = chỉ tiếng ồn
+  var shareWhat=0;
   function exportCode(){
-    if(!mem||!mem.lib.length) return "";
-    var P=pick(mem.lib,MAXEXP), N=pick(mem.neg||[],MAXEXPN);
+    if(!mem) return "";
+    var P = shareWhat===2 ? [] : pick(mem.lib||[],MAXEXP);
+    var N = shareWhat===1 ? [] : pick(mem.neg||[],MAXEXPN);
+    if(!P.length && !N.length) return "";
     var cp=P.length, cn=N.length;
     var buf=new Uint8Array(17+(cp+cn)*NB);
     buf[0]=65; buf[1]=53; buf[2]=76; buf[3]=3;
@@ -431,13 +445,15 @@
     var ver=u8[3];
     if(ver<1||ver>3) return null;
     var cp=u8[4]|(u8[5]<<8), nb=u8[6];
-    if(nb!==NB || cp<1) return null;
+    if(nb!==NB) return null;
+    if(ver===1 && cp<1) return null;
     var sim=(u8[7]|(u8[8]<<8))/1000, str=(u8[9]|(u8[10]<<8))/100;
     var head= ver===1?11 : (ver===2?13:17);
     var cn = ver>=2 ? (u8[11]|(u8[12]<<8)) : 0;
     var dLo= ver>=3 ? (u8[13]|(u8[14]<<8)) : 90;
     var dHi= ver>=3 ? (u8[15]|(u8[16]<<8)) : 350;
     if(u8.length!==head+(cp+cn)*nb) return null;
+    if(cp+cn<1) return null;
     var p=head,i,b,pos=[],neg=[],v;
     for(i=0;i<cp;i++){ v=new Float32Array(NB); for(b=0;b<NB;b++) v[b]=u8[p++]/255; pos.push(toArr(unit(v))); }
     for(i=0;i<cn;i++){ v=new Float32Array(NB); for(b=0;b<NB;b++) v[b]=u8[p++]/255; neg.push(toArr(unit(v))); }
@@ -521,11 +537,14 @@
   // ---------- Bước 1: kiểm tra & dạy tiếng ồn ----------
   function startNoise(){
     if(!running||!haveBase||learning||noiseMode) return;
+    var sec=parseInt($("noiseSec").value,10);
+    if(!(sec>=5)) sec=20; if(sec>180) sec=180;
+    $("noiseSec").value=sec; noiseMs=sec*1000;
     noiseMode=true; noiseVecs=[]; noiseHeard=0; noiseWouldCount=0;
-    noiseUntil=performance.now()+NOISE_MS;
+    noiseUntil=performance.now()+noiseMs;
     $("noiseFill").style.width="0%";
     $("noiseResult").className="result hidden";
-    setStatus("Đang kiểm tra — ĐỪNG đụng vào giấy trong 30 giây.","noise");
+    setStatus("Đang kiểm tra — ĐỪNG đụng vào giấy trong "+sec+" giây.","noise");
     refreshUI();
   }
   function finishNoise(){
@@ -652,7 +671,7 @@
     if(noiseMode){
       if(now>=noiseUntil) finishNoise();
       else {
-        $("noiseFill").style.width=Math.min(100,(1-(noiseUntil-now)/NOISE_MS)*100)+"%";
+        $("noiseFill").style.width=Math.min(100,(1-(noiseUntil-now)/noiseMs)*100)+"%";
         $("noiseMsg").textContent="Còn "+Math.ceil((noiseUntil-now)/1000)+" giây — ĐỪNG đụng vào giấy. Đã nghe "+noiseHeard+" tiếng"+(noiseWouldCount?", "+noiseWouldCount+" tiếng suýt bị đếm":"")+".";
       }
     }
@@ -772,20 +791,31 @@
     var got=parseCode($("codeIn").value);
     if(!got){ shareMsg("<b>Mã không hợp lệ.</b> Hãy chép lại đầy đủ, mã bắt đầu bằng “A5LIB.”","var(--bad)"); return; }
     if(learning||noiseMode){ shareMsg("Đang học dở — dừng lại trước đã.","var(--warn)"); return; }
-    var lib,neg,keptStr,dLo,dHi;
-    if(mode==="merge"&&mem&&mem.lib.length){
-      lib=mem.lib.concat(got.lib); neg=(mem.neg||[]).concat(got.neg||[]);
-      keptStr=mem.str; dLo=Math.min(mem.dLo,got.dLo); dHi=Math.max(mem.dHi,got.dHi);
-    } else {
-      lib=got.lib.slice(); neg=(got.neg||[]).slice();
-      keptStr=(mem&&mem.lib.length?mem.str:got.str); dLo=got.dLo; dHi=got.dHi;
+    var had=mem&&mem.lib&&mem.lib.length;
+    var lib=(mem&&mem.lib)?mem.lib.slice():[];
+    var neg=(mem&&mem.neg)?mem.neg.slice():[];
+    var keptStr=had?mem.str:got.str;
+    var dLo=had?mem.dLo:got.dLo, dHi=had?mem.dHi:got.dHi;
+
+    if(got.lib.length){                       // mã có tiếng giấy
+      lib = (mode==="merge") ? lib.concat(got.lib) : got.lib.slice();
+      if(mode==="merge"&&had){ dLo=Math.min(dLo,got.dLo); dHi=Math.max(dHi,got.dHi); }
+      else { dLo=got.dLo; dHi=got.dHi; if(!had) keptStr=got.str; }
+    }
+    if(got.neg.length){                       // mã có tiếng ồn
+      neg = (mode==="merge") ? neg.concat(got.neg) : got.neg.slice();
     }
     while(lib.length>LIB_MAX) lib.shift();
     while(neg.length>NEG_MAX) neg.shift();
+
     mem={ v:5, lib:lib, neg:neg, sim:calcThreshold(lib), str:keptStr, dLo:dLo, dHi:dHi,
-          n:(mode==="merge"&&mem?mem.n:0)+got.n };
+          n:(mode==="merge"&&mem?(mem.n||0):0)+got.lib.length };
     saveMem(); refreshUI(); $("codeIn").value="";
-    shareMsg("<b>Đã nhận "+got.lib.length+" vân giấy và "+(got.neg?got.neg.length:0)+" mẫu ồn.</b> Hãy chạy <b>Bước 1</b> trên máy này.","var(--acc)");
+    var parts=[];
+    if(got.lib.length) parts.push(got.lib.length+" vân tiếng giấy");
+    if(got.neg.length) parts.push(got.neg.length+" mẫu tiếng ồn");
+    shareMsg("<b>Đã nhận "+parts.join(" và ")+".</b>"+
+             (got.lib.length&&!got.neg.length?" Nên chạy <b>Bước 1</b> trên máy này để dạy tiếng ồn.":""),"var(--acc)");
     if(navigator.vibrate) navigator.vibrate([30,40,30]);
   }
 
@@ -802,6 +832,14 @@
   $("btnDelete").addEventListener("click",function(){
     clearMem(); refreshUI();
     setStatus(running?"Đã xoá thư viện — máy ngừng đếm cho tới khi học lại.":"Đã xoá thư viện.", running?"prep":"");
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#segWhat button"),function(b){
+    b.addEventListener("click",function(){
+      shareWhat=+b.getAttribute("data-w");
+      Array.prototype.forEach.call(document.querySelectorAll("#segWhat button"),function(x){x.classList.remove("on");});
+      b.classList.add("on");
+      refreshUI();
+    });
   });
   $("btnCopy").addEventListener("click",doCopy);
   $("btnShare").addEventListener("click",function(){
