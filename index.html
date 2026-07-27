@@ -117,9 +117,9 @@
 <div class="card check">
   <h2>Bước 1 · Kiểm tra & dạy tiếng ồn</h2>
   <div class="note" style="margin-top:0">Bấm nút rồi <b>KHÔNG đụng vào giấy</b>. Máy đếm xem có bao nhiêu lần nó định đếm nhầm, đồng thời ghi nhớ tất cả tiếng đó là “không phải giấy”. Làm lại tới khi báo <b>0 lần</b>.</div>
-  <label style="font-size:12.5px;color:var(--dim);display:block;margin-top:11px">Nghe trong bao nhiêu giây</label>
-  <input type="number" id="noiseSec" value="20" min="5" max="180" step="5" inputmode="numeric" style="margin:5px 0 9px">
-  <div class="note" style="margin-top:0">Ngắn 10–20 giây cho đỡ mất việc; dài 60 giây trở lên thì bắt được nhiều loại tiếng hơn. Đang chạy vẫn bấm <b>Dừng sớm</b> được, phần đã nghe vẫn được ghi nhớ.</div>
+  <label style="font-size:12.5px;color:var(--dim);display:block;margin-top:11px">Nghe trong bao nhiêu <b>phút</b></label>
+  <input type="number" id="noiseMin" value="1" min="0.1" max="60" step="0.5" inputmode="decimal" style="margin:5px 0 9px">
+  <div class="note" style="margin-top:0">Gõ <b>0.5</b> là 30 giây, <b>1</b> là 1 phút, tối đa <b>60</b> phút. Muốn kỹ thì đặt 30–60 phút rồi để máy nghe suốt buổi làm — nó gom được đủ loại tiếng (điện thoại reo, ghế kéo, cửa đóng…). Đang chạy vẫn bấm <b>Dừng sớm</b> bất cứ lúc nào, phần đã nghe vẫn giữ nguyên.</div>
   <div class="row" style="margin-top:11px">
     <button class="noiseb" id="btnNoise" disabled>Bắt đầu kiểm tra &amp; dạy tiếng ồn</button>
   </div>
@@ -249,7 +249,8 @@
   var MIND=60, MAXD=900;
   var CAL_MS=2500, NB=32;
   var BACK_MS=1800, FWD_MS=2500;
-  var LIB_MAX=200, NEG_MAX=150;
+  var LIB_MAX=200, NEG_MAX=400;
+  var NOISE_SAVE_MS=30000;           // chạy dài thì lưu định kỳ, tránh mất khi màn hình tắt
   var noiseMs=20000;                 // người dùng tự chọn
   var KSENS=[3.6,5.0,6.8], ABSMIN=[4,6,9];
   var SIMADJ=[-0.02,0,0.025];
@@ -271,7 +272,8 @@
   var mem=null;      // {v:5, lib:[], neg:[], sim, str, dLo, dHi, n}
   var learning=false, learnMode="new", learnTarget=30;
   var learnVecs=[], learnStr=[], learnDur=[], learnCount=0, lastAcceptT=-1e9;
-  var noiseMode=false, noiseUntil=0, noiseVecs=[], noiseHeard=0, noiseWouldCount=0;
+  var noiseMode=false, noiseUntil=0, noiseHeard=0, noiseWouldCount=0;
+  var noiseBaseNeg=[], noiseAdded=0, noiseSaveAt=0;
   var recentEvents=[], pendingUntil=0;
 
   function $(id){return document.getElementById(id);}
@@ -292,7 +294,19 @@
         if(o&&o.lib&&o.lib.length&&o.lib[0].length===NB){ mem=o; if(!mem.neg) mem.neg=[]; } }
     }catch(e){ mem=null; }
   }
-  function saveMem(){ try{ localStorage.setItem(KEY,JSON.stringify(mem)); }catch(e){} }
+  function r4(a){ var o=new Array(a.length); for(var i=0;i<a.length;i++) o[i]=Math.round(a[i]*10000)/10000; return o; }
+  function saveMem(){
+    if(!mem) return;
+    function pack(){ return JSON.stringify({v:5,lib:mem.lib.map(r4),neg:(mem.neg||[]).map(r4),
+      sim:mem.sim,str:mem.str,dLo:mem.dLo,dHi:mem.dHi,n:mem.n}); }
+    try{ localStorage.setItem(KEY,pack()); }
+    catch(e){                                   // hết chỗ -> bớt tiếng ồn thừa rồi lưu lại
+      try{
+        while(mem.neg.length>40){ mem.neg.splice(mostRedundant(mem.neg),1); }
+        localStorage.setItem(KEY,pack());
+      }catch(e2){}
+    }
+  }
   function clearMem(){ mem=null; try{ localStorage.removeItem(KEY); }catch(e){} }
 
   function refreshUI(){
@@ -370,17 +384,28 @@
     sd=Math.sqrt(sd/sims.length);
     return Math.max(SIM_FLOOR,Math.min(SIM_CEIL, mu-2.2*sd));
   }
+  // mẫu nào giống các mẫu khác nhất = thừa nhất, bỏ nó đi khi hết chỗ
+  function mostRedundant(lib){
+    var bi=0,bs=-2;
+    for(var i=0;i<lib.length;i++){
+      var s=bestSim(lib[i],lib,i);
+      if(s>bs){ bs=s; bi=i; }
+    }
+    return bi;
+  }
   function addNeg(fp){
     if(!mem) return;
     if(!mem.neg) mem.neg=[];
-    if(bestSim(fp,mem.neg,-1)>=0.995) return;
+    if(bestSim(fp,mem.neg,-1)>=0.99) return;                      // đã có tiếng gần y hệt
     if(mem.lib.length && bestSim(fp,mem.lib,-1)>=0.998) return;   // trùng khít giấy thì không ghi
-    if(mem.neg.length>=NEG_MAX) mem.neg.shift();
+    if(mem.neg.length>=NEG_MAX) mem.neg.splice(mostRedundant(mem.neg),1);
     mem.neg.push(toArr(fp));
+    return true;
   }
 
   // quyết định: sự kiện này có phải tiếng giấy không (dùng chung cho đếm và tự kiểm)
-  function judge(fp,strength,dur){
+  // negLib: dùng để chấm điểm công bằng lúc kiểm tra (kho tiếng ồn tại thời điểm bắt đầu)
+  function judge(fp,strength,dur,negLib){
     if(!mem||!mem.lib.length) return {ok:false,why:"chưa học tiếng giấy"};
     var loS=mem.str*STRLO[level], hiS=mem.str*STRHI[level];
     if(strength<loS) return {ok:false,why:"quá nhẹ ("+strength.toFixed(1)+" < "+loS.toFixed(1)+")"};
@@ -389,7 +414,8 @@
     if(dur<dl) return {ok:false,why:"quá ngắn ("+Math.round(dur)+" ms < "+Math.round(dl)+" ms)"};
     if(dur>dh) return {ok:false,why:"quá dài ("+Math.round(dur)+" ms > "+Math.round(dh)+" ms)"};
     var sp=bestSim(fp,mem.lib,-1);
-    var sn=(mem.neg&&mem.neg.length)?bestSim(fp,mem.neg,-1):-1;
+    var ng=negLib||mem.neg||[];
+    var sn=ng.length?bestSim(fp,ng,-1):-1;
     if(sn>=sp-0.005) return {ok:false,why:"giống tiếng ồn hơn (ồn "+sn.toFixed(3)+" ≥ giấy "+sp.toFixed(3)+")",sp:sp,sn:sn};
     var need=mem.sim+SIMADJ[level];
     if(sp<need) return {ok:false,why:"âm sắc không đủ giống ("+sp.toFixed(3)+" < "+need.toFixed(3)+")",sp:sp};
@@ -535,33 +561,39 @@
   document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="visible"&&running&&!wake) keepAwake(); });
 
   // ---------- Bước 1: kiểm tra & dạy tiếng ồn ----------
+  function fmtTime(ms){
+    var s=Math.ceil(ms/1000);
+    if(s<60) return s+" giây";
+    var m=Math.floor(s/60); s=s%60;
+    return m+" phút"+(s?" "+s+" giây":"");
+  }
   function startNoise(){
     if(!running||!haveBase||learning||noiseMode) return;
-    var sec=parseInt($("noiseSec").value,10);
-    if(!(sec>=5)) sec=20; if(sec>180) sec=180;
-    $("noiseSec").value=sec; noiseMs=sec*1000;
-    noiseMode=true; noiseVecs=[]; noiseHeard=0; noiseWouldCount=0;
+    var mins=parseFloat($("noiseMin").value);
+    if(!(mins>=0.1)) mins=1; if(mins>60) mins=60;
+    $("noiseMin").value=mins; noiseMs=Math.round(mins*60000);
+    if(!mem) mem={v:5,lib:[],neg:[],sim:0.93,str:6,dLo:90,dHi:350,n:0};
+    noiseBaseNeg=(mem.neg||[]).slice();       // chấm điểm theo kho lúc BẮT ĐẦU
+    noiseMode=true; noiseAdded=0; noiseHeard=0; noiseWouldCount=0;
     noiseUntil=performance.now()+noiseMs;
+    noiseSaveAt=performance.now()+NOISE_SAVE_MS;
     $("noiseFill").style.width="0%";
     $("noiseResult").className="result hidden";
-    setStatus("Đang kiểm tra — ĐỪNG đụng vào giấy trong "+sec+" giây.","noise");
+    setStatus("Đang kiểm tra — ĐỪNG đụng vào giấy trong "+fmtTime(noiseMs)+".","noise");
     refreshUI();
   }
   function finishNoise(){
     noiseMode=false;
-    if(!mem) mem={v:5,lib:[],neg:[],sim:0.93,str:6,dLo:90,dHi:350,n:0};
-    for(var i=0;i<noiseVecs.length;i++) addNeg(noiseVecs[i]);
     saveMem();
-    var el=$("noiseResult"); el.className="result";
+    var el=$("noiseResult"); el.className="result"; el.style.color="";
+    var kho="Nghe "+noiseHeard+" tiếng động, ghi thêm <b>"+noiseAdded+"</b> mẫu mới (kho ồn: "+mem.neg.length+").";
     if(!mem.lib.length){
-      el.innerHTML="Nghe được <b>"+noiseHeard+"</b> tiếng động và đã ghi vào nhóm tiếng ồn.<br>Chưa học tiếng giấy nên chưa đánh giá được đếm nhầm.";
-      el.style.color="";
+      el.innerHTML=kho+"<br>Chưa học tiếng giấy nên chưa chấm được điểm đếm nhầm.";
     } else if(noiseWouldCount===0){
-      el.innerHTML="<b style='color:var(--acc)'>0 lần đếm nhầm ✓</b><br>Nghe "+noiseHeard+" tiếng động, không tiếng nào bị tính là giấy.";
-      el.style.color="";
+      el.innerHTML="<b style='color:var(--acc)'>0 lần đếm nhầm ✓</b><br>"+kho;
     } else {
-      el.innerHTML="<b style='color:var(--bad)'>"+noiseWouldCount+" lần đáng lẽ đếm nhầm</b><br>Đã ghi "+noiseHeard+" tiếng vào nhóm tiếng ồn. <b>Hãy bấm chạy lại lần nữa</b> — mỗi lần chạy máy càng chặn tốt hơn.";
-      el.style.color="";
+      el.innerHTML="<b style='color:var(--bad)'>"+noiseWouldCount+" lần đáng lẽ đếm nhầm</b><br>"+kho+
+                   " <b>Hãy chạy lại lần nữa</b> — số mẫu vừa ghi sẽ chặn được chúng.";
     }
     setStatus("Xong kiểm tra tiếng ồn.","live");
     if(navigator.vibrate) navigator.vibrate([30,40,30]);
@@ -672,7 +704,9 @@
       if(now>=noiseUntil) finishNoise();
       else {
         $("noiseFill").style.width=Math.min(100,(1-(noiseUntil-now)/noiseMs)*100)+"%";
-        $("noiseMsg").textContent="Còn "+Math.ceil((noiseUntil-now)/1000)+" giây — ĐỪNG đụng vào giấy. Đã nghe "+noiseHeard+" tiếng"+(noiseWouldCount?", "+noiseWouldCount+" tiếng suýt bị đếm":"")+".";
+        $("noiseMsg").textContent="Còn "+fmtTime(noiseUntil-now)+" — ĐỪNG đụng vào giấy. Đã nghe "+
+          noiseHeard+" tiếng, ghi "+noiseAdded+" mẫu"+(noiseWouldCount?", "+noiseWouldCount+" tiếng suýt bị đếm":"")+".";
+        if(now>=noiseSaveAt){ saveMem(); noiseSaveAt=now+NOISE_SAVE_MS; }   // chạy dài: lưu định kỳ
       }
     }
 
@@ -715,8 +749,9 @@
 
     if(noiseMode){
       noiseHeard++;
-      noiseVecs.push(fp);
-      if(judge(fp,strength,dur).ok) noiseWouldCount++;
+      // chấm điểm TRƯỚC, theo kho lúc bắt đầu — nếu ghi trước rồi chấm thì lúc nào cũng ra 0, vô nghĩa
+      if(judge(fp,strength,dur,noiseBaseNeg).ok) noiseWouldCount++;
+      if(addNeg(fp)) noiseAdded++;
       return;
     }
     if(learning){
