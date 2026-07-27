@@ -130,7 +130,7 @@
     <div class="note">Kéo 1 tờ → bấm <b>Xác nhận tờ này</b>. Máy chỉ lấy đúng tiếng bạn xác nhận, không tự ý nhặt tiếng ồn. Kéo đều tay như lúc làm thật.</div>
   </div>
 
-  <div class="note">Máy ghi “vân âm thanh” từng tờ giấy vào thư viện, rồi chỉ đếm âm nào <b>giống một vân trong thư viện</b> — nói chuyện, gõ phím, va chạm sẽ bị bỏ. Trong lúc đếm, những tiếng máy rất chắc chắn sẽ được tự thêm vào thư viện.</div>
+  <div class="note">Máy ghi “vân âm thanh” từng tờ giấy vào thư viện, rồi chỉ đếm âm nào <b>giống một vân trong thư viện</b> — nói chuyện, gõ phím, va chạm sẽ bị bỏ. <b>Chỉ tờ do bạn xác nhận mới được vào thư viện</b> — máy không bao giờ tự thêm. Muốn nhận chuẩn hơn, bấm “Dạy thêm vào thư viện”.</div>
 </div>
 
 <div class="card">
@@ -202,7 +202,7 @@
   var mem=null;                    // {v:3, lib:[[..NB]], sim, str, n, auto}
   var learning=false, learnMode="new", learnTarget=30;
   var learnVecs=[], learnStr=[], learnCount=0;
-  var recentEvents=[], pendingUntil=0, dirty=0;
+  var recentEvents=[], pendingUntil=0;
 
   function $(id){return document.getElementById(id);}
   var elCount=$("count"), elErr=$("err"), elState=$("state"), elStatus=$("status");
@@ -220,7 +220,7 @@
       if(s){ var o=JSON.parse(s); if(o&&o.lib&&o.lib.length&&o.lib[0].length===NB) mem=o; }
     }catch(e){ mem=null; }
   }
-  function saveMem(){ try{ localStorage.setItem(KEY,JSON.stringify(mem)); dirty=0; }catch(e){} }
+  function saveMem(){ try{ localStorage.setItem(KEY,JSON.stringify(mem)); }catch(e){} }
   function clearMem(){ mem=null; try{ localStorage.removeItem(KEY); }catch(e){} }
 
   function refreshUI(){
@@ -228,7 +228,7 @@
     if(mem){
       el.className="tpl";
       el.innerHTML="Thư viện: <b>"+mem.lib.length+" vân tiếng giấy</b><br>"+
-                   mem.n+" tờ bạn dạy"+(mem.auto?" · "+mem.auto+" tờ máy tự học thêm":"");
+                   "tất cả đều do bạn tự xác nhận. Dạy thêm để nhận chuẩn hơn.";
     } else {
       el.className="tpl none";
       el.innerHTML="<b>Thư viện trống — máy sẽ KHÔNG đếm.</b> Bấm Bắt đầu rồi dạy tiếng giấy một lần.";
@@ -313,7 +313,6 @@
   }
   function stop(){
     running=false; learning=false;
-    if(dirty) saveMem();
     if(raf) cancelAnimationFrame(raf);
     if(stream) stream.getTracks().forEach(function(t){t.stop();});
     if(ctx) ctx.close();
@@ -406,8 +405,7 @@
     if(learnMode==="add" && mem) strMed=(mem.str+strMed)/2;
 
     mem={ v:3, lib:lib, sim:simThr, str:strMed,
-          n:((learnMode==="add"&&mem)?mem.n:0)+learnCount,
-          auto:((learnMode==="add"&&mem)?mem.auto:0)||0 };
+          n:((learnMode==="add"&&mem)?mem.n:0)+learnCount };
     saveMem(); learning=false; pendingUntil=0;
     setStatus("Đã học xong. Thư viện có "+lib.length+" vân tiếng giấy.","live");
     if(navigator.vibrate) navigator.vibrate([40,40,40]);
@@ -488,15 +486,7 @@
 
     count++; lastCount=now; flashUntil=now+160; render();
     if(navigator.vibrate) navigator.vibrate(18);
-
-    // tự bồi đắp thư viện: chỉ nhận tiếng RẤT chắc chắn và còn mới lạ
-    if(sim>=Math.min(0.985,mem.sim+0.05) && sim<0.985){
-      if(mem.lib.length>=LIB_MAX) mem.lib.shift();
-      mem.lib.push(toArr(fp));
-      mem.auto=(mem.auto||0)+1;
-      mem.str=0.97*mem.str+0.03*strength;
-      if(++dirty>=10) saveMem();
-    }
+    // KHÔNG tự thêm vào thư viện. Chỉ tờ do người dùng xác nhận mới được ghi nhận.
   }
 
   function pushHist(f,t,mark){ hist.push({f:f,t:t,h:mark}); if(hist.length>HISTN) hist.shift(); }
@@ -546,7 +536,6 @@
   $("btnReset").addEventListener("click",function(){ count=0; render(); });
   $("btnTap").addEventListener("click",function(){ tap++; if(navigator.vibrate)navigator.vibrate(10); render(); });
   $("btnTapReset").addEventListener("click",function(){ tap=0; render(); });
-  window.addEventListener("pagehide",function(){ if(dirty) saveMem(); });
 
   loadMem(); refreshUI(); render(); draw();
 })();
