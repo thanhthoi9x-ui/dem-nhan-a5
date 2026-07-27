@@ -752,11 +752,17 @@
     var el=$("checkResult"); el.className="result";
 
     if(!miss.length){
-      // vẫn nạp các tờ vừa xác nhận vào thư viện cho dày thêm
       for(i=0;i<checkRes.length;i++) mem.lib.push(toArr(checkRes[i].ev.fp));
       while(mem.lib.length>LIB_MAX) mem.lib.shift();
-      mem.n=(mem.n||0)+checkRes.length; saveMem();
-      el.innerHTML="<b style='color:var(--acc)'>Đếm được "+got+"/"+checkRes.length+" tờ ✓</b><br>Không phải chỉnh gì. Đã nạp thêm "+checkRes.length+" vân vào thư viện.";
+      mem.n=(mem.n||0)+checkRes.length;
+      // Thư viện giờ đã có đúng kiểu kéo của bạn -> siết ngưỡng trở lại mức an toàn,
+      // từng bước một để không siết quá tay. Đây là đường phục hồi sau khi đã nới lỏng.
+      var want=calcThreshold(mem.lib), tightened=false;
+      if(want>mem.sim){ mem.sim=Math.min(want, mem.sim+0.05); tightened=true; }
+      saveMem();
+      el.innerHTML="<b style='color:var(--acc)'>Đếm được "+got+"/"+checkRes.length+" tờ ✓</b><br>"+
+        "Đã nạp thêm "+checkRes.length+" vân vào thư viện."+
+        (tightened?" Đồng thời <b>siết ngưỡng an toàn lên "+mem.sim.toFixed(3)+"</b> để bớt đếm nhầm — nên kiểm tra lại lần nữa.":" Không phải chỉnh gì.");
       setStatus("Kiểm tra xong — máy nhận đúng giấy.","live"); refreshUI(); return;
     }
 
@@ -801,11 +807,16 @@
       removed=mem.neg.length-keep.length; mem.neg=keep;
       changes.push("bỏ "+removed+" mẫu tiếng ồn chặn nhầm");
     }
+    // Lỗi âm sắc thường TỰ HẾT nhờ các vân vừa nạp vào thư viện (lần sau khớp gần 100%).
+    // Nên chỉ hạ ngưỡng rất dè dặt: tối đa 0,015 mỗi lần và không bao giờ xuống dưới 0,88.
+    // Nếu hạ theo tờ cá biệt xuống tận sàn thì bộ lọc coi như tắt, tiếng ồn sẽ lọt lại.
     var tm=pickMiss("timbre");
     if(tm.length){
+      var before=mem.sim;
       var lowest=minOf(tm,function(r){return r.v.sp;});
-      mem.sim=Math.max(0.80, Math.min(mem.sim, lowest-SIMADJ[level]-0.008));
-      changes.push("hạ ngưỡng âm sắc còn "+mem.sim.toFixed(3));
+      mem.sim=Math.max(0.88, mem.sim-0.015, Math.min(mem.sim, lowest-SIMADJ[level]-0.008));
+      if(mem.sim<before) changes.push("hạ nhẹ ngưỡng âm sắc còn "+mem.sim.toFixed(3));
+      else changes.push("giữ nguyên ngưỡng âm sắc (đã nạp vân mới, lần sau sẽ khớp)");
     }
     for(i=0;i<checkRes.length;i++) mem.lib.push(toArr(checkRes[i].ev.fp));
     while(mem.lib.length>LIB_MAX) mem.lib.shift();
